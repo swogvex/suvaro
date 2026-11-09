@@ -1,0 +1,44 @@
+---
+/**
+ * Temporary placeholder home used while the project is set up; replaced by the landing page.
+ * @prop locale  Page language.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { useTranslations, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const otherLocale: Locale = locale === 'en' ? 'es' : 'en';
+const paths: Record<Locale, string> = { en: '/', es: '/es/' };
+---
+
+<BaseLayout
+  title={t('meta.hello.title')}
+  description={t('meta.hello.description')}
+  locale={locale}
+  alternates={paths}
+>
+  <main id="main" class="container hello">
+    <h1>{t('hello.heading')}</h1>
+    <p>{t('hello.body')}</p>
+    <p>
+      <a href={paths[otherLocale]} hreflang={otherLocale} lang={otherLocale}>
+        {t('hello.switchLanguage')}
+      </a>
+    </p>
+  </main>
+</BaseLayout>
+
+<style>
+  .hello {
+    display: grid;
+    gap: var(--space-4);
+    align-content: center;
+    min-height: 100dvh;
+    padding-block: var(--space-12);
+  }
+</style>

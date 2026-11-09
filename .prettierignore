@@ -1,0 +1,16 @@
+dist
+.astro
+.vercel
+node_modules
+pnpm-lock.yaml
+drizzle/meta
+coverage
+playwright-report
+test-results
+.lighthouseci
+docs
+public/brand
+CLAUDE.md
+START-AQUI.md
+claude-project-instructions.md
+src/styles/tokens.css
