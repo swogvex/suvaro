@@ -6,14 +6,16 @@ import vercel from '@astrojs/vercel';
 
 // CI and local e2e run a plain Node server; Vercel builds use the Vercel adapter.
 const adapter =
-  process.env.CI_ADAPTER === 'node' ? node({ mode: 'standalone' }) : vercel({ staticHeaders: true });
+  process.env.CI_ADAPTER === 'node'
+    ? node({ mode: 'standalone', staticHeaders: true })
+    : vercel({ staticHeaders: true });
 
 export default defineConfig({
   site: 'https://suvaro.xyz',
   output: 'server',
   adapter,
   integrations: [svelte()],
-  trailingSlash: 'ignore',
+  trailingSlash: 'never',
   markdown: { syntaxHighlight: false },
 
   i18n: {
@@ -55,6 +57,7 @@ export default defineConfig({
         "base-uri 'none'",
         "form-action 'self'",
         "object-src 'none'",
+        "frame-ancestors 'none'",
       ],
       scriptDirective: { resources: ["'self'"] },
       styleDirective: { resources: ["'self'"] },

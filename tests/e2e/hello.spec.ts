@@ -2,8 +2,8 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 const pages = [
-  { path: '/', lang: 'en', heading: 'Hello from Suvaro', switchTo: '/es/' },
-  { path: '/es/', lang: 'es', heading: 'Hola desde Suvaro', switchTo: '/' },
+  { path: '/', lang: 'en', heading: 'Hello from Suvaro', switchTo: '/es' },
+  { path: '/es', lang: 'es', heading: 'Hola desde Suvaro', switchTo: '/' },
 ] as const;
 
 for (const { path, lang, heading, switchTo } of pages) {
@@ -18,6 +18,15 @@ for (const { path, lang, heading, switchTo } of pages) {
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading);
       await expect(page.locator(`a[href="${switchTo}"]`)).toBeVisible();
       expect(errors).toEqual([]);
+    });
+
+    test('sends a hashed CSP header that forbids framing', async ({ request }) => {
+      const response = await request.get(path);
+      const csp = response.headers()['content-security-policy'] ?? '';
+      expect(csp).toContain("frame-ancestors 'none'");
+      expect(csp).toContain("object-src 'none'");
+      expect(csp).toMatch(/script-src 'self' 'sha256-/);
+      expect(csp).not.toContain('unsafe-inline');
     });
 
     test('skip link is the first focusable element and targets main', async ({ page }) => {
@@ -49,3 +58,9 @@ for (const { path, lang, heading, switchTo } of pages) {
     }
   });
 }
+
+test('URLs have no trailing slash: /es/ redirects permanently to /es', async ({ request }) => {
+  const response = await request.get('/es/', { maxRedirects: 0 });
+  expect([301, 308]).toContain(response.status());
+  expect(new URL(response.headers()['location'] ?? '', 'http://localhost').pathname).toBe('/es');
+});
