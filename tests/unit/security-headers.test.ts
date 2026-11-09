@@ -14,10 +14,8 @@ describe('security headers', () => {
     expect(fromVercel).toEqual(securityHeaders);
   });
 
-  it('keeps the header CSP free of script and style restrictions (Astro adds hashed ones)', () => {
-    const csp = securityHeaders['Content-Security-Policy'];
-    expect(csp).toContain("frame-ancestors 'none'");
-    expect(csp).not.toMatch(/default-src|script-src|style-src/);
+  it('leaves the CSP to Astro so there is a single policy', () => {
+    expect(Object.keys(securityHeaders)).not.toContain('Content-Security-Policy');
   });
 
   it('does not overwrite headers already set by a route', () => {

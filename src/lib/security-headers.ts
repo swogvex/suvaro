@@ -2,11 +2,11 @@
  * Security headers sent with every response.
  * - SSR responses get them from `src/middleware.ts`.
  * - Static (prerendered) files on Vercel get them from `vercel.json`; a unit test keeps both in sync.
- * The script/style part of the CSP is generated per page by Astro (hashes); the header below only adds
- * directives that cannot live in a <meta> tag and never restricts scripts or styles, so both policies combine.
+ * The Content-Security-Policy is not here: Astro builds it (`security.csp` in astro.config.mjs) with per-page
+ * script/style hashes and, with `staticHeaders`, always sends it as a header. A second CSP header would be
+ * dropped by Vercel's per-route rules, so all directives live in one place.
  */
 export const securityHeaders = {
-  'Content-Security-Policy': "frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'",
   'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',

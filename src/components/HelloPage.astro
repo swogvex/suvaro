@@ -13,7 +13,7 @@ interface Props {
 const { locale } = Astro.props;
 const t = useTranslations(locale);
 const otherLocale: Locale = locale === 'en' ? 'es' : 'en';
-const paths: Record<Locale, string> = { en: '/', es: '/es/' };
+const paths: Record<Locale, string> = { en: '/', es: '/es' };
 ---
 
 <BaseLayout
