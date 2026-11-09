@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      astro:
+        patterns: ['astro', '@astrojs/*']
+      lint-and-format:
+        patterns: ['eslint*', 'typescript-eslint', 'prettier*']
+      testing:
+        patterns: ['vitest', '@playwright/test', '@axe-core/*', '@lhci/*']
+    ignore:
+      # Major upgrades (e.g. Astro 7) are planned decisions, not automatic PRs.
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
