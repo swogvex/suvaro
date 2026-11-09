@@ -1,0 +1,103 @@
+/* Suvaro — design tokens (direction B "Soft Dots"). Source of truth: copy to src/styles/tokens.css in M0.
+   Theme switch on <html>:  data-mode="light|dark"  data-accent="blue|red|green"
+   - data-mode is resolved from the profile (light/dark/system) by a tiny inline head script (CSP hash).
+   - data-accent = theme_day when light, theme_night when dark.
+   - Without JS or before sign-in: prefers-color-scheme decides the mode and the accent is blue. */
+
+:root {
+  /* type */
+  --font-display: 'Unbounded', 'Arial Black', system-ui, sans-serif;   /* titles and big numbers, weight 600 */
+  --font-ui: 'Gabarito', system-ui, -apple-system, 'Segoe UI', sans-serif; /* UI and body, 400–700 */
+  --tracking-display: -0.02em;
+  --tracking-number: -0.03em;
+
+  /* radius — low, never pill-shaped */
+  --radius-track: 3px;   /* progress bars */
+  --radius-xs: 5px;      /* badges, kbd */
+  --radius-s: 6px;       /* chips, inputs, small tiles */
+  --radius-btn: 8px;     /* buttons, category tiles, avatars */
+  --radius-m: 10px;      /* cards */
+  --radius-l: 14px;      /* panels, dialogs, hero card, mobile dock */
+
+  /* spacing scale (px) */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
+  --space-6: 24px; --space-8: 32px; --space-12: 48px;
+  --column: 1040px;
+
+  /* motion */
+  --dur-fast: 120ms; --dur: 200ms; --ease: cubic-bezier(.2, .7, .2, 1);
+
+  /* LIGHT · BLUE (base) */
+  --bg: #F6F3EE; --dot: #D6CFC2; --surface: #FFFFFF; --surface-2: #F2EDE5; --line: #E6E0D5;
+  --ink: #211F1C; --ink-2: #56524C; --ink-3: #69645C;
+  --accent: #4A44D1; --accent-strong: #2E29A3; --on-accent: #FFFFFF; --accent-soft: #E5E3FF;
+  --accent-2: #C2471F; --accent-2-soft: #FFE1D3;
+  --positive: #1D7350; --negative: #B23E1A; --warning: #875800;
+  --hero-bg: #DCD7FF; --hero-ink: #211F1C; --hero-line: #C9C2FF;
+  --shadow: 0 1px 0 rgba(33,31,28,.05), 0 8px 22px rgba(33,31,28,.06);
+  --shadow-float: 0 1px 2px rgba(33,31,28,.08), 0 14px 34px rgba(33,31,28,.14);
+  /* category colors: identical in every theme; always dark ink (#1E2420) on top */
+  --cat-1: #FFC9A8; --cat-2: #CFC6FF; --cat-3: #BDE8CF; --cat-4: #FFE38F;
+  --cat-5: #B9DCFF; --cat-6: #FFC4D6; --cat-7: #EAD9C4; --cat-8: #D6E8A6;
+  --cat-ink: #1E2420;
+  color-scheme: light;
+}
+
+/* DARK · BLUE (default dark) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode="light"]) {
+    --bg: #12141C; --dot: #272B3A; --surface: #1A1D28; --surface-2: #232835; --line: #323849;
+    --ink: #F3F0EA; --ink-2: #BCB7C4; --ink-3: #A39EAD;
+    --accent: #93A8FF; --accent-strong: #6A82E6; --on-accent: #12141C; --accent-soft: #252D54;
+    --accent-2: #FF9E7A; --accent-2-soft: #3D2620;
+    --positive: #7FD3A6; --negative: #FF9A7E; --warning: #F2C25A;
+    --hero-bg: #232A5C; --hero-ink: #F3F0EA; --hero-line: #353F80;
+    --shadow: 0 1px 0 rgba(0,0,0,.25), 0 8px 22px rgba(0,0,0,.3);
+    --shadow-float: 0 1px 2px rgba(0,0,0,.4), 0 14px 34px rgba(0,0,0,.45);
+    color-scheme: dark;
+  }
+}
+:root[data-mode="dark"] {
+  --bg: #12141C; --dot: #272B3A; --surface: #1A1D28; --surface-2: #232835; --line: #323849;
+  --ink: #F3F0EA; --ink-2: #BCB7C4; --ink-3: #A39EAD;
+  --accent: #93A8FF; --accent-strong: #6A82E6; --on-accent: #12141C; --accent-soft: #252D54;
+  --accent-2: #FF9E7A; --accent-2-soft: #3D2620;
+  --positive: #7FD3A6; --negative: #FF9A7E; --warning: #F2C25A;
+  --hero-bg: #232A5C; --hero-ink: #F3F0EA; --hero-line: #353F80;
+  --shadow: 0 1px 0 rgba(0,0,0,.25), 0 8px 22px rgba(0,0,0,.3);
+  --shadow-float: 0 1px 2px rgba(0,0,0,.4), 0 14px 34px rgba(0,0,0,.45);
+  color-scheme: dark;
+}
+
+/* LIGHT · RED */
+:root[data-mode="light"][data-accent="red"] {
+  --bg: #F8F1EF; --dot: #DCC9C4; --surface-2: #F4EAE7; --line: #EADBD6;
+  --accent: #C3303D; --accent-strong: #8E1F2A; --on-accent: #FFFFFF; --accent-soft: #FCE1E3;
+  --hero-bg: #FFD6DA; --hero-line: #F6BBC1;
+}
+/* LIGHT · GREEN */
+:root[data-mode="light"][data-accent="green"] {
+  --bg: #F1F5EF; --dot: #C9D5C4; --surface-2: #E9F0E6; --line: #DCE5D7;
+  --accent: #1E7A4C; --accent-strong: #135435; --on-accent: #FFFFFF; --accent-soft: #DBF1E3;
+  --hero-bg: #CBEED7; --hero-line: #A8DEBB;
+}
+/* DARK · RED */
+:root[data-mode="dark"][data-accent="red"] {
+  --bg: #1A1314; --dot: #352A2C; --surface: #241B1C; --surface-2: #2F2426; --line: #413335;
+  --accent: #FF8C95; --accent-strong: #D9616C; --on-accent: #1A1314; --accent-soft: #46252A;
+  --hero-bg: #4B232A; --hero-line: #6C343C;
+}
+/* DARK · GREEN */
+:root[data-mode="dark"][data-accent="green"] {
+  --bg: #101813; --dot: #27332B; --surface: #17211B; --surface-2: #202C24; --line: #2E3C33;
+  --accent: #72DCA2; --accent-strong: #4AB57D; --on-accent: #0E1611; --accent-soft: #1E3A2A;
+  --hero-bg: #1E3D2C; --hero-line: #2D5A41;
+}
+
+body {
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--dot) 1.3px, transparent 1.6px);
+  background-size: 20px 20px;
+  color: var(--ink);
+  font-family: var(--font-ui);
+}
