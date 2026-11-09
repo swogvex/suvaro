@@ -1,0 +1,34 @@
+# Dependencies and builds
+node_modules/
+dist/
+.astro/
+.vercel/
+.output/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Local database
+local.db
+local.db-*
+*.sqlite
+
+# Tests and reports
+coverage/
+playwright-report/
+test-results/
+.lighthouseci/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Prompt files (kept out of the public repo; back them up on OneDrive)
+docs/
+CLAUDE.md
+START-AQUI.md
+claude-project-instructions.md
+.claude/
