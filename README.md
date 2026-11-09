@@ -1,0 +1,24 @@
+# Suvaro
+
+A calm, simple web app to track personal expenses by hand. Numbers you type — never real money, never a bank.
+
+**Stack:** Astro 7 (SSR on Vercel) · Svelte 5 islands · native CSS · Turso + Drizzle · TypeScript strict.
+
+## Development
+
+Requires Node 24 and pnpm.
+
+```sh
+pnpm install
+cp .env.example .env   # local dev works with TURSO_DATABASE_URL=file:local.db
+pnpm db:migrate
+pnpm dev
+```
+
+| Command      | What it does                                        |
+| ------------ | --------------------------------------------------- |
+| `pnpm check` | Astro + TypeScript type check                       |
+| `pnpm lint`  | ESLint and Prettier                                 |
+| `pnpm test`  | Unit tests (Vitest)                                 |
+| `pnpm e2e`   | End-to-end + accessibility tests (Playwright + axe) |
+| `pnpm lhci`  | Lighthouse CI (after `pnpm build:node`)             |

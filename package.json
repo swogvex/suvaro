@@ -1,0 +1,53 @@
+{
+  "name": "suvaro",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "packageManager": "pnpm@12.4.2",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "build:node": "node --env-file-if-exists=.env scripts/build-node.mjs",
+    "start:node": "node dist/server/entry.mjs",
+    "preview": "astro preview",
+    "check": "astro check",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "lhci": "lhci autorun",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "@astrojs/svelte": "^9.1.2",
+    "@astrojs/vercel": "^11.0.20",
+    "@libsql/client": "^0.18.0",
+    "astro": "^7.4.8",
+    "drizzle-orm": "^0.45.4",
+    "svelte": "^5.57.3",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@astrojs/node": "^11.1.11",
+    "@axe-core/playwright": "^4.14.0",
+    "@lhci/cli": "^0.16.0",
+    "@playwright/test": "^1.65.0",
+    "drizzle-kit": "^0.31.11",
+    "eslint": "^10.14.0",
+    "eslint-plugin-astro": "^3.2.1",
+    "eslint-plugin-svelte": "^3.24.1",
+    "prettier": "^3.9.10",
+    "prettier-plugin-astro": "^1.1.2",
+    "prettier-plugin-svelte": "^4.1.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^5.1.0"
+  }
+}
