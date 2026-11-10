@@ -1,0 +1,96 @@
+---
+/**
+ * Public footer: legal links · language · theme switch · disclaimer.
+ * @prop locale      Page language.
+ * @prop alternates  This page in each language.
+ */
+import ThemeSwitch from './ThemeSwitch.astro';
+import Logo from '../ui/Logo.astro';
+import { otherLocale, useTranslations, type Locale } from '../../i18n';
+import { legalPath, type Alternates, type LegalKey } from '../../lib/routes';
+
+interface Props {
+  locale: Locale;
+  alternates: Alternates;
+}
+
+const { locale, alternates } = Astro.props;
+const t = useTranslations(locale);
+const other = otherLocale(locale);
+const tOther = useTranslations(other);
+const legalLinks: { key: LegalKey; label: string }[] = [
+  { key: 'notice', label: t('footer.notice') },
+  { key: 'privacy', label: t('footer.privacy') },
+  { key: 'cookies', label: t('footer.cookies') },
+  { key: 'terms', label: t('footer.terms') },
+  { key: 'credits', label: t('footer.credits') },
+];
+---
+
+<footer class="site-footer container">
+  <div class="site-footer__top">
+    <Logo size={24} />
+    <nav aria-label={t('footer.legalLabel')}>
+      <ul class="site-footer__links">
+        {legalLinks.map(({ key, label }) => (
+          <li>
+            <a href={legalPath(key, locale)}>{label}</a>
+          </li>
+        ))}
+        <li>
+          <a href={alternates[other]} hreflang={other} lang={other}>
+            {tOther('lang.name')}
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <ThemeSwitch locale={locale} />
+  </div>
+  <p class="site-footer__note">{t('footer.disclaimer')}</p>
+</footer>
+
+<style>
+  .site-footer {
+    display: grid;
+    gap: var(--space-5);
+    margin-block-start: var(--space-12);
+    padding-block: var(--space-8);
+    border-block-start: 1px solid var(--line);
+    color: var(--ink-2);
+    font-size: 0.875rem;
+  }
+
+  .site-footer__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-8);
+    color: var(--ink);
+  }
+
+  .site-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-footer__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: var(--ink-2);
+  }
+
+  .site-footer__links a:hover {
+    color: var(--ink);
+  }
+
+  @media (min-width: 52rem) {
+    .site-footer__top :global([data-theme-switch]) {
+      margin-inline-start: auto;
+    }
+  }
+</style>

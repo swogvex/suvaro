@@ -1,0 +1,33 @@
+---
+/**
+ * Layout for indexable public pages: header, main, footer, language suggestion and cookieless analytics.
+ * @prop title, description, locale  See BaseLayout.
+ * @prop alternates  This page in each language (required: every public page exists in EN and ES).
+ * Slot `head`: extra <head> elements.
+ */
+import BaseLayout from './BaseLayout.astro';
+import LangNotice from '../components/site/LangNotice.astro';
+import SiteFooter from '../components/site/SiteFooter.astro';
+import SiteHeader from '../components/site/SiteHeader.astro';
+import type { Locale } from '../i18n';
+import type { Alternates } from '../lib/routes';
+
+interface Props {
+  title: string;
+  description: string;
+  locale: Locale;
+  alternates: Alternates;
+}
+
+const { title, description, locale, alternates } = Astro.props;
+---
+
+<BaseLayout title={title} description={description} locale={locale} alternates={alternates} analytics>
+  <slot name="head" slot="head" />
+  <SiteHeader locale={locale} alternates={alternates} />
+  <main id="main">
+    <slot />
+  </main>
+  <SiteFooter locale={locale} alternates={alternates} />
+  <LangNotice locale={locale} alternates={alternates} />
+</BaseLayout>

@@ -3,6 +3,7 @@ import { defineConfig, envField, fontProviders } from 'astro/config';
 import node from '@astrojs/node';
 import svelte from '@astrojs/svelte';
 import vercel from '@astrojs/vercel';
+import { themeInitScriptHash } from './src/lib/theme-csp.ts';
 
 // CI and local e2e run a plain Node server; Vercel builds use the Vercel adapter.
 const adapter =
@@ -32,7 +33,7 @@ export default defineConfig({
       weights: [600],
       styles: ['normal'],
       subsets: ['latin'],
-      fallbacks: ['Arial Black', 'system-ui', 'sans-serif'],
+      fallbacks: ['Suvaro Display Fallback', 'Arial Black', 'system-ui', 'sans-serif'],
     },
     {
       provider: fontProviders.fontsource(),
@@ -41,7 +42,7 @@ export default defineConfig({
       weights: ['400 900'],
       styles: ['normal'],
       subsets: ['latin'],
-      fallbacks: ['system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+      fallbacks: ['Suvaro UI Fallback', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
     },
   ],
 
@@ -59,7 +60,9 @@ export default defineConfig({
         "object-src 'none'",
         "frame-ancestors 'none'",
       ],
-      scriptDirective: { resources: ["'self'"] },
+      // The inline theme script runs before first paint on every page; its hash is allowed globally
+      // (Astro.csp.insertScriptHash does not reach the static headers of prerendered pages).
+      scriptDirective: { resources: ["'self'"], hashes: [themeInitScriptHash] },
       styleDirective: { resources: ["'self'"] },
     },
   },

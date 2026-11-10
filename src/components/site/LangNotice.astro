@@ -1,0 +1,96 @@
+---
+/**
+ * Dismissible suggestion to read the page in the browser's language. It never redirects.
+ * Written in the other language, shown only when the browser prefers it and the visitor has not closed it.
+ * @prop locale      Page language.
+ * @prop alternates  This page in each language.
+ */
+import IconButton from '../ui/IconButton.astro';
+import { otherLocale, useTranslations, type Locale } from '../../i18n';
+import type { Alternates } from '../../lib/routes';
+
+interface Props {
+  locale: Locale;
+  alternates: Alternates;
+}
+
+const { locale, alternates } = Astro.props;
+const other = otherLocale(locale);
+const tOther = useTranslations(other);
+---
+
+<aside
+  class="lang-notice"
+  lang={other}
+  data-lang-notice={other}
+  aria-label={tOther('lang.switchLabel')}
+  hidden
+>
+  <p>{tOther('lang.noticeText')}</p>
+  <a class="btn btn--primary" href={alternates[other]} hreflang={other}>
+    {tOther('lang.noticeLink')}
+  </a>
+  <IconButton icon="x" label={tOther('lang.noticeDismiss')} data-lang-notice-close />
+</aside>
+
+<style>
+  .lang-notice {
+    position: fixed;
+    inset-block-start: var(--space-3);
+    inset-inline: var(--space-3);
+    z-index: 50;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    max-width: 30rem;
+    margin-inline: auto;
+    padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface);
+    box-shadow: var(--shadow-float);
+  }
+
+  .lang-notice[hidden] {
+    display: none;
+  }
+
+  .lang-notice p {
+    flex: 1 1 12rem;
+  }
+</style>
+
+<script>
+  const STORAGE_KEY = 'suvaro-lang-notice';
+  const notice = document.querySelector<HTMLElement>('[data-lang-notice]');
+
+  function dismissed(): boolean {
+    try {
+      return localStorage.getItem(STORAGE_KEY) === 'dismissed';
+    } catch {
+      return false;
+    }
+  }
+
+  /** First supported language in the browser's list, if any. */
+  function preferredLanguage(): string | undefined {
+    for (const tag of navigator.languages ?? [navigator.language]) {
+      const base = tag.toLowerCase().split('-')[0];
+      if (base === 'en' || base === 'es') return base;
+    }
+    return undefined;
+  }
+
+  if (notice && !dismissed() && preferredLanguage() === notice.dataset['langNotice']) {
+    notice.hidden = false;
+    notice.querySelector('[data-lang-notice-close]')?.addEventListener('click', () => {
+      notice.hidden = true;
+      try {
+        localStorage.setItem(STORAGE_KEY, 'dismissed');
+      } catch {
+        // Storage blocked: the notice comes back on the next page, which is acceptable.
+      }
+    });
+  }
+</script>

@@ -1,0 +1,23 @@
+---
+/**
+ * Category tile: square, radius 8, category color with a line icon in `--cat-ink`.
+ * Decorative: always pair it with a text label.
+ * @prop icon   Icon name.
+ * @prop color  Category color 1–8 (Peach, Lilac, Mint, Butter, Sky, Pink, Sand, Lime).
+ * @prop size   sm (28 px) | md (36 px) | lg (48 px).
+ */
+import type { IconName } from '../../lib/icons';
+import Icon from './Icon.astro';
+
+interface Props {
+  icon: IconName;
+  color?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+const { icon, color = 1, size = 'md' } = Astro.props;
+---
+
+<span class:list={['cat-tile', size !== 'md' && `cat-tile--${size}`]} data-color={color} aria-hidden="true">
+  <Icon name={icon} />
+</span>

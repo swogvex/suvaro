@@ -1,0 +1,28 @@
+---
+/**
+ * Toggle chip (36 px, radius 6). `on` uses the ink background and sets aria-pressed.
+ * @prop on           Selected state.
+ * @prop removeLabel  When set, renders a static chip with a × button that has this accessible name.
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+  on?: boolean;
+  removeLabel?: string;
+}
+
+const { on = false, removeLabel } = Astro.props;
+---
+
+{removeLabel ? (
+  <span class:list={['chip', on && 'chip--on']}>
+    <slot />
+    <button class="chip__remove" type="button" aria-label={removeLabel}>
+      <Icon name="x" />
+    </button>
+  </span>
+) : (
+  <button class="chip" type="button" aria-pressed={on ? 'true' : 'false'}>
+    <slot />
+  </button>
+)}

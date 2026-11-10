@@ -1,0 +1,170 @@
+---
+/**
+ * Landing hero visual: a real HeroCard ("left this month") and a budget card, built from UI components
+ * with the sample month. Labeled as an example.
+ * @prop locale  Page language.
+ */
+import Badge from '../ui/Badge.astro';
+import Card from '../ui/Card.astro';
+import CategoryTile from '../ui/CategoryTile.astro';
+import HeroCard from '../ui/HeroCard.astro';
+import ProgressTrack from '../ui/ProgressTrack.astro';
+import StackedBar from '../ui/StackedBar.astro';
+import { useTranslations, type Locale } from '../../i18n';
+import { budgetLevel } from '../../lib/budget';
+import { formatMoney, percent } from '../../lib/money';
+import { sampleMonth as m } from '../../lib/site';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const money = (cents: number) => formatMoney(cents, locale);
+const daily = formatMoney(Math.floor(m.availableCents / m.daysLeft), locale, { wholeUnits: true });
+const foodPct = percent(m.foodSpentCents, m.foodLimitCents);
+const atRisk = budgetLevel(foodPct) !== 'ok';
+const parts = [
+  { tone: 'spent', label: t('sample.spent'), cents: m.expensesCents },
+  { tone: 'setAside', label: t('sample.setAside'), cents: m.setAsideCents },
+  { tone: 'free', label: t('sample.free'), cents: m.availableCents },
+] as const;
+---
+
+<figure class="sample" aria-label={t('landing.sampleLabel')}>
+  <HeroCard class="sample__hero">
+    <div class="sample__head">
+      <p class="sample__label">{t('sample.available')}</p>
+      <Badge tone="accent">{t('landing.sampleBadge')}</Badge>
+    </div>
+    <p class="sample__amount num">{money(m.availableCents)}</p>
+    <StackedBar segments={parts.map((p) => ({ value: p.cents, tone: p.tone }))} />
+    <ul class="sample__legend">
+      {parts.map((p) => (
+        <li>
+          <span class={`sample__key sample__key--${p.tone}`} aria-hidden="true" />
+          <span>{p.label}</span>
+          <span class="num">{money(p.cents)}</span>
+        </li>
+      ))}
+    </ul>
+    <p class="sample__daily">{t('sample.perDay', { amount: daily, days: m.daysLeft })}</p>
+  </HeroCard>
+
+  <Card class="sample__budget">
+    <div class="sample__row">
+      <CategoryTile icon="utensils" color={1} />
+      <div class="sample__budget-text">
+        <p class="sample__budget-title">{t('sample.budgetTitle')}</p>
+        <p class="sample__budget-of">
+          {t('sample.budgetOf', { spent: money(m.foodSpentCents), limit: money(m.foodLimitCents) })}
+        </p>
+      </div>
+      {atRisk && (
+        <Badge tone="warning" icon="clock">
+          {t('sample.budgetAtRisk')}
+        </Badge>
+      )}
+    </div>
+    <ProgressTrack value={foodPct} label={t('sample.budgetTitle')} />
+    <p class="sample__pct">{t('sample.budgetPct', { pct: foodPct })}</p>
+  </Card>
+</figure>
+
+<style>
+  .sample {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+
+  .sample__hero {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .sample__head,
+  .sample__row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .sample__head {
+    justify-content: space-between;
+  }
+
+  .sample__label {
+    font-weight: 600;
+  }
+
+  .sample__amount {
+    font-size: clamp(2.5rem, 11vw, 3.5rem);
+    line-height: 1;
+  }
+
+  .sample__legend {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9375rem;
+  }
+
+  .sample__legend li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .sample__legend .num {
+    margin-inline-start: auto;
+    font-size: 0.9375rem;
+  }
+
+  .sample__key {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: var(--radius-track);
+  }
+
+  .sample__key--spent {
+    background: var(--accent-2);
+  }
+
+  .sample__key--setAside {
+    background: var(--accent);
+  }
+
+  .sample__key--free {
+    background: var(--surface);
+  }
+
+  .sample__daily {
+    font-weight: 500;
+  }
+
+  .sample__budget {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .sample__budget-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sample__budget-title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .sample__budget-of,
+  .sample__pct {
+    color: var(--ink-2);
+    font-size: 0.875rem;
+  }
+</style>

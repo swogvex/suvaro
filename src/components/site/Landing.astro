@@ -1,0 +1,350 @@
+---
+/**
+ * Landing page, shared by `/` and `/es`. All copy comes from `src/content/landing` and `src/content/faq`.
+ * @prop locale  Page language.
+ */
+import { getCollection, getEntry, render } from 'astro:content';
+import SampleHero from './SampleHero.astro';
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import Button from '../ui/Button.astro';
+import Card from '../ui/Card.astro';
+import CategoryTile from '../ui/CategoryTile.astro';
+import HeroCard from '../ui/HeroCard.astro';
+import Icon from '../ui/Icon.astro';
+import { useTranslations, type Locale } from '../../i18n';
+import type { IconName } from '../../lib/icons';
+import { appPaths, homeAlternates, homePath } from '../../lib/routes';
+import { holderName, siteName } from '../../lib/site';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const entry = await getEntry('landing', `${locale}/index`);
+if (!entry) throw new Error(`Missing landing content for ${locale}`);
+const { title, description, hero, blocks, dataBlock, finalCta } = entry.data;
+
+const faqEntries = (await getCollection('faq', ({ id }) => id.startsWith(`${locale}/`))).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const faqs = await Promise.all(
+  faqEntries.map(async (faq) => ({
+    id: faq.id,
+    question: faq.data.question,
+    Content: (await render(faq)).Content,
+  })),
+);
+
+const blockStyle: Record<(typeof blocks)[number]['key'], { icon: IconName; color: 1 | 3 | 5 }> = {
+  note: { icon: 'pencil', color: 1 },
+  understand: { icon: 'chart', color: 5 },
+  plan: { icon: 'target', color: 3 },
+};
+const dataIcons: IconName[] = ['ban', 'shield', 'map-pin', 'clock'];
+
+const site = Astro.site ?? new URL(Astro.url.origin);
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: siteName,
+  url: new URL(homePath(locale), site).href,
+  description,
+  inLanguage: locale,
+  applicationCategory: 'FinanceApplication',
+  operatingSystem: 'Web',
+  isAccessibleForFree: true,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+  ...(holderName && { author: { '@type': 'Person', name: holderName } }),
+};
+---
+
+<PublicLayout title={title} description={description} locale={locale} alternates={homeAlternates}>
+  <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />
+  <section class="hero container" aria-labelledby="hero-title">
+    <div class="hero__text">
+      <p class="eyebrow">{hero.eyebrow}</p>
+      <h1 id="hero-title" class="hero__title">
+        {hero.headline}
+      </h1>
+      <p class="hero__sub">{hero.sub}</p>
+      <div class="actions">
+        <Button href={appPaths.signIn} variant="primary" size="lg">
+          {hero.primaryCta}
+        </Button>
+        <Button href={appPaths.demo} variant="secondary" size="lg">
+          {hero.secondaryCta}
+        </Button>
+      </div>
+      <p class="hero__note">
+        <Icon name="shield" />
+        {hero.note}
+      </p>
+    </div>
+    <SampleHero locale={locale} />
+  </section>
+
+  <section id="how" class="section container" aria-labelledby="how-title">
+    <h2 id="how-title">{t('landing.howTitle')}</h2>
+    <ul class="blocks">
+      {blocks.map((block) => (
+        <Card as="li" class="block">
+          <CategoryTile icon={blockStyle[block.key].icon} color={blockStyle[block.key].color} size="lg" />
+          <h3>{block.title}</h3>
+          <p>{block.text}</p>
+        </Card>
+      ))}
+    </ul>
+  </section>
+
+  <section id="data" class="section container" aria-labelledby="data-title">
+    <HeroCard class="data">
+      <h2 id="data-title">{dataBlock.title}</h2>
+      <ul class="data__list">
+        {dataBlock.items.map((item, i) => (
+          <li>
+            <Icon name={dataIcons[i % dataIcons.length] ?? 'check'} />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </HeroCard>
+  </section>
+
+  <section id="faq" class="section container" aria-labelledby="faq-title">
+    <h2 id="faq-title">{t('landing.faqTitle')}</h2>
+    <div class="faq">
+      {faqs.map(({ id, question, Content }) => (
+        <details class="faq__item" id={`faq-${id.split('/')[1]}`}>
+          <summary>
+            <span>{question}</span>
+            <Icon name="chevron-down" class="faq__chevron" />
+          </summary>
+          <div class="faq__answer">
+            <Content />
+          </div>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <section class="section container" aria-labelledby="cta-title">
+    <Card class="cta">
+      <div>
+        <h2 id="cta-title">{finalCta.title}</h2>
+        <p>{finalCta.text}</p>
+      </div>
+      <div class="actions">
+        <Button href={appPaths.signIn} variant="primary" size="lg">
+          {finalCta.primary}
+        </Button>
+        <Button href={appPaths.demo} variant="secondary" size="lg">
+          {finalCta.secondary}
+        </Button>
+      </div>
+    </Card>
+  </section>
+</PublicLayout>
+
+<style>
+  .hero {
+    display: grid;
+    gap: var(--space-8);
+    align-items: center;
+    padding-block: var(--space-8) var(--space-12);
+  }
+
+  .hero__text {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+
+  .eyebrow {
+    color: var(--ink-2);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .hero__title {
+    font-size: clamp(2rem, 7.5vw, 3.25rem);
+    line-height: 1.04;
+  }
+
+  .hero__sub {
+    color: var(--ink-2);
+    font-size: 1.0625rem;
+  }
+
+  .hero__note {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--ink-2);
+    font-size: 0.875rem;
+  }
+
+  .hero__note :global(svg) {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    color: var(--positive);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .section {
+    display: grid;
+    gap: var(--space-6);
+    padding-block: var(--space-8);
+    scroll-margin-top: var(--space-4);
+  }
+
+  h2 {
+    font-size: 1.375rem;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .blocks {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .block {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+
+  .block p {
+    color: var(--ink-2);
+  }
+
+  .data {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .data__list {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .data__list li {
+    display: flex;
+    gap: var(--space-3);
+    align-items: start;
+  }
+
+  .data__list :global(svg) {
+    flex: none;
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+
+  .faq {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .faq__item {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+
+  .faq__item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-height: 3.25rem;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-m);
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .faq__item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq__item :global(.faq__chevron) {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    transition: transform var(--dur) var(--ease);
+  }
+
+  .faq__item[open] :global(.faq__chevron) {
+    transform: rotate(180deg);
+  }
+
+  .faq__answer {
+    padding: 0 var(--space-4) var(--space-4);
+    color: var(--ink-2);
+  }
+
+  .cta {
+    display: grid;
+    gap: var(--space-5);
+    padding: var(--space-6);
+  }
+
+  .cta > div:first-child {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .cta p {
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 48rem) {
+    .blocks {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .data {
+      padding: var(--space-8);
+    }
+
+    .data__list {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-5) var(--space-8);
+    }
+
+    .cta {
+      grid-template-columns: 1fr auto;
+      align-items: center;
+    }
+  }
+
+  @media (min-width: 60rem) {
+    .hero {
+      grid-template-columns: 1.15fr 1fr;
+      gap: var(--space-12);
+      padding-block: var(--space-12);
+    }
+  }
+</style>

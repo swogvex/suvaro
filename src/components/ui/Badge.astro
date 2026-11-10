@@ -1,0 +1,21 @@
+---
+/**
+ * Small label (radius 5, 12 px). Color never alone: pass an icon or clear text.
+ * @prop tone  neutral | accent | positive | warning | negative.
+ * @prop icon  Leading icon name.
+ */
+import type { IconName } from '../../lib/icons';
+import Icon from './Icon.astro';
+
+interface Props {
+  tone?: 'neutral' | 'accent' | 'positive' | 'warning' | 'negative';
+  icon?: IconName;
+}
+
+const { tone = 'neutral', icon } = Astro.props;
+---
+
+<span class:list={['badge', tone !== 'neutral' && `badge--${tone}`]}>
+  {icon && <Icon name={icon} />}
+  <slot />
+</span>

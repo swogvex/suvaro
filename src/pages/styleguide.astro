@@ -1,0 +1,250 @@
+---
+/**
+ * Internal component gallery (not product UI, so its sample text is not translated).
+ * Used by e2e tests to run axe on every component in the 6 theme combinations.
+ * Not in the sitemap, noindex, and not served on the Vercel production deployment.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Badge from '../components/ui/Badge.astro';
+import Button from '../components/ui/Button.astro';
+import Card from '../components/ui/Card.astro';
+import CategoryTile from '../components/ui/CategoryTile.astro';
+import Chip from '../components/ui/Chip.astro';
+import Field from '../components/ui/Field.astro';
+import HeroCard from '../components/ui/HeroCard.astro';
+import IconButton from '../components/ui/IconButton.astro';
+import Logo from '../components/ui/Logo.astro';
+import ProgressTrack from '../components/ui/ProgressTrack.astro';
+import Segmented from '../components/ui/Segmented.astro';
+import Skeleton from '../components/ui/Skeleton.astro';
+import StackedBar from '../components/ui/StackedBar.astro';
+import { icons, type IconName } from '../lib/icons';
+
+export const prerender = false;
+
+if (process.env['VERCEL_ENV'] === 'production') return Astro.rewrite('/404');
+
+const iconNames = Object.keys(icons) as IconName[];
+const colors = [1, 2, 3, 4, 5, 6, 7, 8] as const;
+---
+
+<BaseLayout
+  title="Components · Suvaro"
+  description="Internal gallery of Suvaro UI components."
+  locale="en"
+  noindex
+>
+  <main id="main" class="container sg">
+    <h1>Components</h1>
+
+    <section>
+      <h2>Logo</h2>
+      <div class="row">
+        <Logo />
+        <Logo wordmark={false} size={16} />
+      </div>
+    </section>
+
+    <section>
+      <h2>Buttons</h2>
+      <div class="row">
+        <Button variant="primary" icon="plus">
+          Primary
+        </Button>
+        <Button>Secondary</Button>
+        <Button variant="ghost">Ghost</Button>
+        <Button variant="danger" icon="trash">
+          Delete
+        </Button>
+        <Button variant="primary" disabled>
+          Disabled
+        </Button>
+        <Button variant="primary" size="lg" href="#main">
+          Large link
+        </Button>
+        <IconButton icon="x" label="Close" />
+      </div>
+    </section>
+
+    <section>
+      <h2>Chips and segmented</h2>
+      <div class="row">
+        <Chip>Food</Chip>
+        <Chip on>Transport</Chip>
+        <Chip removeLabel="Remove Leisure">Leisure</Chip>
+        <Chip on removeLabel="Remove Health">
+          Health
+        </Chip>
+      </div>
+      <Segmented
+        legend="Period"
+        name="period"
+        showLegend
+        value="month"
+        options={[
+          { value: 'week', label: 'Week' },
+          { value: 'month', label: 'Month' },
+          { value: 'year', label: 'Year' },
+        ]}
+      />
+    </section>
+
+    <section>
+      <h2>Fields</h2>
+      <div class="grid">
+        <Field id="sg-email" label="Email" type="email" autocomplete="email" hint="We send a 6-digit code." />
+        <Field id="sg-amount" label="Amount" amount placeholder="0.00" />
+        <Field id="sg-note" label="Note" error="Use 140 characters or fewer." value="Too long" />
+      </div>
+    </section>
+
+    <section>
+      <h2>Cards</h2>
+      <div class="grid">
+        <Card>
+          <h3>Card</h3>
+          <p>Surface, line border and a soft shadow.</p>
+        </Card>
+        <HeroCard>
+          <h3>Hero card</h3>
+          <p class="num big">€487.60</p>
+          <StackedBar
+            segments={[
+              { value: 121240, tone: 'spent' },
+              { value: 15000, tone: 'setAside' },
+              { value: 48760, tone: 'free' },
+            ]}
+          />
+        </HeroCard>
+      </div>
+    </section>
+
+    <section>
+      <h2>Category tiles</h2>
+      <div class="row">
+        {colors.map((c, i) => (
+          <CategoryTile icon={iconNames[i] ?? 'check'} color={c} />
+        ))}
+        <CategoryTile icon="utensils" size="sm" />
+        <CategoryTile icon="utensils" size="lg" color={2} />
+      </div>
+    </section>
+
+    <section>
+      <h2>Progress and badges</h2>
+      <div class="grid">
+        <div class="stack">
+          <ProgressTrack value={42} label="Leisure budget" />
+          <span>42 % used</span>
+        </div>
+        <div class="stack">
+          <ProgressTrack value={86} label="Food budget" />
+          <span>86 % used</span>
+        </div>
+        <div class="stack">
+          <ProgressTrack value={104} label="Transport budget" />
+          <span>104 % used</span>
+        </div>
+        <div class="stack">
+          <ProgressTrack value={60} label="Trip goal" tone="accent" />
+          <span>60 % saved</span>
+        </div>
+      </div>
+      <div class="row">
+        <Badge>Neutral</Badge>
+        <Badge tone="accent">Example</Badge>
+        <Badge tone="positive" icon="check">
+          Income
+        </Badge>
+        <Badge tone="warning" icon="clock">
+          At risk
+        </Badge>
+        <Badge tone="negative" icon="ban">
+          Over
+        </Badge>
+      </div>
+    </section>
+
+    <section aria-busy="true">
+      <h2>Skeleton</h2>
+      <div class="stack">
+        <Skeleton class="sk-line" />
+        <Skeleton class="sk-line short" />
+      </div>
+    </section>
+
+    <section>
+      <h2>Icons</h2>
+      <ul class="row icons">
+        {iconNames.map((name) => (
+          <li>
+            <CategoryTile icon={name} color={2} size="sm" />
+            <span>{name}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .sg {
+    display: grid;
+    gap: var(--space-8);
+    padding-block: var(--space-8);
+  }
+
+  section {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  h2 {
+    font-size: 1.375rem;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--space-4);
+  }
+
+  .stack {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .big {
+    font-size: 3.25rem;
+    line-height: 1;
+  }
+
+  .sk-line {
+    height: 1rem;
+  }
+
+  .short {
+    width: 60%;
+  }
+
+  .icons {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .icons li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 9rem;
+    font-size: 0.8125rem;
+  }
+</style>

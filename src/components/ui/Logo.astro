@@ -1,0 +1,87 @@
+---
+/**
+ * Suvaro symbol ("Grid": an "s" drawn through a 3×3 dot grid) plus the live-text wordmark.
+ * Logo colors are fixed by the art direction (not the accent theme); they only switch with the mode.
+ * @prop wordmark  Shows "suvaro" next to the symbol (default true).
+ * @prop size      Symbol size in px (default 30, minimum 16).
+ */
+interface Props {
+  wordmark?: boolean;
+  size?: number;
+}
+
+const { wordmark = true, size = 30 } = Astro.props;
+const px = Math.max(size, 16);
+const dots = [7, 16, 25].flatMap((cy) => [7, 16, 25].map((cx) => ({ cx, cy })));
+---
+
+<span class="logo">
+  <svg class="logo__symbol" viewBox="0 0 32 32" width={px} height={px} aria-hidden="true" focusable="false">
+    <g class="logo__dots">
+      {dots.map(({ cx, cy }) => (
+        <circle cx={cx} cy={cy} r="1.6" />
+      ))}
+    </g>
+    <polyline
+      class="logo__line"
+      points="25,7 7,7 7,16 25,16 25,25 7,25"
+      fill="none"
+      stroke-width="3.6"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    ></polyline>
+    <circle class="logo__start" cx="25" cy="7" r="3.4"></circle>
+    <circle class="logo__end" cx="7" cy="25" r="3.4"></circle>
+  </svg>
+  {wordmark && <span class="logo__word">suvaro</span>}
+</span>
+
+<style>
+  .logo {
+    --logo-dot: #d6cfc2;
+    --logo-line: #4a44d1;
+    --logo-start: #c2471f;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-mode='light'])) .logo {
+      --logo-dot: #45424f;
+      --logo-line: #aaa6ff;
+      --logo-start: #ff9e7a;
+    }
+  }
+
+  :global(:root[data-mode='dark']) .logo {
+    --logo-dot: #45424f;
+    --logo-line: #aaa6ff;
+    --logo-start: #ff9e7a;
+  }
+
+  .logo__dots {
+    fill: var(--logo-dot);
+  }
+
+  .logo__line {
+    stroke: var(--logo-line);
+  }
+
+  .logo__start {
+    fill: var(--logo-start);
+  }
+
+  .logo__end {
+    fill: var(--logo-line);
+  }
+
+  .logo__word {
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: var(--tracking-display);
+  }
+</style>

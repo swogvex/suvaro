@@ -1,0 +1,48 @@
+---
+/**
+ * Horizontal stacked bar (own SVG, no inline styles): spent / set aside / free, left to right.
+ * Decorative: always show the values as text next to it (direct labels instead of a legend).
+ * @prop segments  `{ value, tone }[]` with tone spent | setAside | free.
+ */
+interface Props {
+  segments: readonly { value: number; tone: 'spent' | 'setAside' | 'free' }[];
+}
+
+const { segments } = Astro.props;
+const total = segments.reduce((sum, s) => sum + Math.max(s.value, 0), 0) || 1;
+const GAP = 0.8;
+let x = 0;
+const rects = segments.map((segment) => {
+  const width = (Math.max(segment.value, 0) / total) * 100;
+  const rect = { x, width: Math.max(width - GAP, 0), tone: segment.tone };
+  x += width;
+  return rect;
+});
+---
+
+<svg class="stacked-bar" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+  {rects.map((r) => (
+    <rect x={r.x} y="0" width={r.width} height="10" class={`stacked-bar__${r.tone}`} />
+  ))}
+</svg>
+
+<style>
+  .stacked-bar {
+    display: block;
+    width: 100%;
+    height: 0.75rem;
+    border-radius: var(--radius-track);
+  }
+
+  .stacked-bar__spent {
+    fill: var(--accent-2);
+  }
+
+  .stacked-bar__setAside {
+    fill: var(--accent);
+  }
+
+  .stacked-bar__free {
+    fill: var(--surface);
+  }
+</style>

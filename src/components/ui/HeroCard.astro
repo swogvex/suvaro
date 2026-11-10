@@ -1,0 +1,16 @@
+---
+/**
+ * The one highlighted card per screen (`--hero-bg`, radius 14, geometric decoration behind the content).
+ * @prop as     Element to render (default div).
+ * @prop class  Extra classes. Other attributes pass through.
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'div'> & { as?: 'div' | 'section' | 'article' | 'aside' };
+
+const { as: Tag = 'div', class: className, ...rest } = Astro.props;
+---
+
+<Tag class:list={['hero-card', className]} {...rest}>
+  <slot />
+</Tag>

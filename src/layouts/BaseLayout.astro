@@ -5,11 +5,15 @@
  * @prop description  Meta description (already translated).
  * @prop locale       Page language, `en` or `es`.
  * @prop alternates   Path of this page in each locale, for canonical + hreflang. Omit on pages without translations.
- * @prop noindex      Adds `noindex` for app, demo, sign-in and error pages.
+ * @prop noindex      Adds `noindex` for app, demo, sign-in and error pages (and skips canonical/OG URL).
+ * @prop analytics    Loads Vercel Web Analytics + Speed Insights (public pages only, Vercel builds only).
+ * Slot `head`: extra elements for <head> (e.g. structured data).
  */
 import { Font } from 'astro:assets';
 import '../styles/global.css';
-import { defaultLocale, useTranslations, type Locale } from '../i18n';
+import Analytics from '../components/site/Analytics.astro';
+import { defaultLocale, ogLocales, otherLocale, useTranslations, type Locale } from '../i18n';
+import { themeInitScript } from '../lib/theme';
 
 interface Props {
   title: string;
@@ -17,9 +21,10 @@ interface Props {
   locale: Locale;
   alternates?: Partial<Record<Locale, string>>;
   noindex?: boolean;
+  analytics?: boolean;
 }
 
-const { title, description, locale, alternates, noindex = false } = Astro.props;
+const { title, description, locale, alternates, noindex = false, analytics = false } = Astro.props;
 const t = useTranslations(locale);
 const site = Astro.site ?? new URL(Astro.url.origin);
 const canonical = new URL(Astro.url.pathname, site).href;
@@ -28,6 +33,7 @@ const alternateLinks = Object.entries(alternates ?? {}).map(([lang, path]) => ({
   href: new URL(path, site).href,
 }));
 const xDefault = alternates?.[defaultLocale];
+const ogImage = new URL(`/og/og-${locale}.png`, site).href;
 ---
 
 <!doctype html>
@@ -35,6 +41,8 @@ const xDefault = alternates?.[defaultLocale];
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* Sets data-mode/data-accent before first paint; allowed by its hash in astro.config.mjs. */}
+    <script is:inline set:html={themeInitScript} />
     <title>{title}</title>
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex" />}
@@ -43,11 +51,32 @@ const xDefault = alternates?.[defaultLocale];
       <link rel="alternate" hreflang={lang} href={href} />
     ))}
     {xDefault && <link rel="alternate" hreflang="x-default" href={new URL(xDefault, site).href} />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={t('meta.siteName')} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {!noindex && <meta property="og:url" content={canonical} />}
+    <meta property="og:locale" content={ogLocales[locale]} />
+    {alternates?.[otherLocale(locale)] && (
+      <meta property="og:locale:alternate" content={ogLocales[otherLocale(locale)]} />
+    )}
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={t('meta.ogImageAlt')} />
+    <meta name="twitter:card" content="summary_large_image" />
+
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#F6F3EE" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#12141C" media="(prefers-color-scheme: dark)" />
     <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <Font cssVariable="--font-unbounded" preload />
     <Font cssVariable="--font-gabarito" />
+    <slot name="head" />
+    {analytics && <Analytics />}
   </head>
   <body>
     <a class="skip-link" href="#main">
