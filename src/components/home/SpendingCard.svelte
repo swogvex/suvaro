@@ -65,11 +65,16 @@
 
   const days = $derived(cycleLength(cycle));
   const rows = $derived(
-    Array.from({ length: Math.max(days, cycleLength(previousCycle)) }, (_, i) => ({
-      day: i + 1,
-      current: current[i],
-      previous: previous[i],
-    })),
+    Array.from({ length: Math.max(days, cycleLength(previousCycle)) }, (_, i) => {
+      const total = current[i];
+      return {
+        day: i + 1,
+        // What was spent that day; the chart and the other two columns are running totals.
+        spent: total === undefined ? undefined : total - (current[i - 1] ?? 0),
+        current: total,
+        previous: previous[i],
+      };
+    }),
   );
 </script>
 
@@ -110,8 +115,9 @@
         <thead>
           <tr>
             <th scope="col">{t('home.chartDay')}</th>
-            <th scope="col">{currentName}</th>
-            <th scope="col">{previousName}</th>
+            <th scope="col">{t('home.chartThatDay')}</th>
+            <th scope="col">{t('home.chartSoFar', { name: currentName })}</th>
+            <th scope="col">{t('home.chartSoFar', { name: previousName })}</th>
           </tr>
         </thead>
         <tbody>
@@ -120,6 +126,7 @@
               <th scope="row">
                 {row.day <= days ? dayMonth(addDays(cycle.start, row.day - 1), locale) : row.day}
               </th>
+              <td class="num">{row.spent === undefined ? '—' : money(row.spent)}</td>
               <td class="num">{row.current === undefined ? '—' : money(row.current)}</td>
               <td class="num">{row.previous === undefined ? '—' : money(row.previous)}</td>
             </tr>
@@ -162,6 +169,12 @@
     padding: var(--space-1) var(--space-2);
     border-block-end: 1px solid var(--line);
     text-align: end;
+  }
+
+  /* Dates and amounts never break; on phones the table scrolls sideways inside its focusable box. */
+  tbody th,
+  td {
+    white-space: nowrap;
   }
 
   th:first-child {

@@ -349,6 +349,8 @@ export const es = {
   'home.chartTable': 'Ver como tabla',
   'home.chartHide': 'Ocultar tabla',
   'home.chartDay': 'Día',
+  'home.chartThatDay': 'Gastado ese día',
+  'home.chartSoFar': '{name}, acumulado',
   'home.budgetsTitle': 'Presupuestos',
   'home.budgetsAtRisk': '{n} en riesgo',
   'home.budgetLeft': '{pct} % · quedan {amount}',

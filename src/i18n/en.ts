@@ -342,6 +342,8 @@ export const en = {
   'home.chartTable': 'View as table',
   'home.chartHide': 'Hide table',
   'home.chartDay': 'Day',
+  'home.chartThatDay': 'Spent that day',
+  'home.chartSoFar': '{name}, running total',
   'home.budgetsTitle': 'Budgets',
   'home.budgetsAtRisk': '{n} at risk',
   'home.budgetLeft': '{pct} % · {amount} left',
