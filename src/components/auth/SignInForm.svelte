@@ -375,7 +375,9 @@
               aria-label={t('signIn.codeDigit', { n: i + 1 })}
               aria-invalid={errorField === 'code' ? 'true' : undefined}
               value={digit}
-              disabled={busy || !ready}
+              disabled={!ready}
+              readonly={busy}
+              aria-busy={busy ? 'true' : undefined}
               oninput={(event) => onDigitInput(i, event)}
               onkeydown={(event) => onDigitKey(i, event)}
               onpaste={(event) => onDigitPaste(i, event)}
