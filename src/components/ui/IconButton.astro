@@ -1,0 +1,23 @@
+---
+/**
+ * 44×44 button with only an icon.
+ * @prop icon   Icon name.
+ * @prop label  Accessible name (required).
+ * @prop type   Button type (default "button"). Other attributes pass through.
+ */
+import type { HTMLAttributes } from 'astro/types';
+import type { IconName } from '../../lib/icons';
+import Icon from './Icon.astro';
+
+type Props = Omit<HTMLAttributes<'button'>, 'type'> & {
+  icon: IconName;
+  label: string;
+  type?: 'button' | 'submit' | 'reset';
+};
+
+const { icon, label, type = 'button', class: className, ...rest } = Astro.props;
+---
+
+<button class:list={['icon-btn', className]} type={type} aria-label={label} {...rest}>
+  <Icon name={icon} />
+</button>

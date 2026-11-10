@@ -1,0 +1,14 @@
+---
+/**
+ * Placeholder block, only for content loaded on the client. Hidden from assistive tech;
+ * the loading region itself should carry aria-busy.
+ * @prop class  Sizing classes.
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<span class:list={['skeleton', className]} aria-hidden="true"></span>

@@ -1,0 +1,53 @@
+---
+/**
+ * Button, or a link styled as a button. Renders <a> when `href` is set, otherwise <button>.
+ * @prop variant   primary | secondary | ghost | danger (default secondary).
+ * @prop size      md (44 px) | lg (52 px).
+ * @prop href      Makes it a link.
+ * @prop type      Button type when it is a <button> (default "button").
+ * @prop icon      Leading icon name.
+ * @prop disabled  Disabled state (45 % opacity).
+ * @prop class     Extra classes. Other attributes pass through.
+ */
+import type { HTMLAttributes } from 'astro/types';
+import type { IconName } from '../../lib/icons';
+import Icon from './Icon.astro';
+
+type Props = Omit<HTMLAttributes<'a'>, 'type'> & {
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  size?: 'md' | 'lg';
+  href?: string;
+  type?: 'button' | 'submit' | 'reset';
+  icon?: IconName;
+  disabled?: boolean;
+};
+
+const {
+  variant = 'secondary',
+  size = 'md',
+  href,
+  type = 'button',
+  icon,
+  disabled = false,
+  class: className,
+  ...rest
+} = Astro.props;
+const classes = ['btn', `btn--${variant}`, size === 'lg' && 'btn--lg', className];
+---
+
+{href ? (
+  <a
+    class:list={classes}
+    href={disabled ? undefined : href}
+    aria-disabled={disabled ? 'true' : undefined}
+    {...rest}
+  >
+    {icon && <Icon name={icon} />}
+    <slot />
+  </a>
+) : (
+  <button class:list={classes} type={type} disabled={disabled} {...rest}>
+    {icon && <Icon name={icon} />}
+    <slot />
+  </button>
+)}

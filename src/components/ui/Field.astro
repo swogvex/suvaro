@@ -1,0 +1,52 @@
+---
+/**
+ * Text field with a visible label, optional hint, and an error linked by aria-describedby.
+ * @prop id      Input id (required; used by the label and the descriptions).
+ * @prop label   Visible label.
+ * @prop hint    Help text under the input.
+ * @prop error   Error text; marks the input aria-invalid.
+ * @prop amount  Amount input: decimal keyboard and tabular numbers.
+ * Other attributes (type, name, autocomplete, required, value…) pass to the <input>.
+ */
+import type { HTMLAttributes } from 'astro/types';
+import Icon from './Icon.astro';
+
+type Props = HTMLAttributes<'input'> & {
+  id: string;
+  label: string;
+  hint?: string;
+  error?: string;
+  amount?: boolean;
+};
+
+const { id, label, hint, error, amount = false, class: className, ...rest } = Astro.props;
+const hintId = hint ? `${id}-hint` : undefined;
+const errorId = error ? `${id}-error` : undefined;
+const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
+const amountAttrs = amount ? { inputmode: 'decimal' as const, autocomplete: 'off' } : {};
+---
+
+<div class:list={['field', className]}>
+  <label class="field__label" for={id}>
+    {label}
+  </label>
+  <input
+    class:list={['field__input', amount && 'num']}
+    id={id}
+    aria-describedby={describedBy}
+    aria-invalid={error ? 'true' : undefined}
+    {...amountAttrs}
+    {...rest}
+  />
+  {hint && (
+    <p class="field__hint" id={hintId}>
+      {hint}
+    </p>
+  )}
+  {error && (
+    <p class="field__error" id={errorId}>
+      <Icon name="ban" />
+      {error}
+    </p>
+  )}
+</div>

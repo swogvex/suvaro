@@ -1,0 +1,16 @@
+---
+/**
+ * Surface card: radius 10, line border, soft shadow.
+ * @prop as     Element to render (default div).
+ * @prop class  Extra classes. Other attributes pass through.
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'div'> & { as?: 'div' | 'section' | 'article' | 'li' | 'aside' };
+
+const { as: Tag = 'div', class: className, ...rest } = Astro.props;
+---
+
+<Tag class:list={['card', className]} {...rest}>
+  <slot />
+</Tag>

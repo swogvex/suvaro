@@ -1,0 +1,33 @@
+---
+/**
+ * Line icon from the own set (`src/lib/icons.ts`). Decorative by default (`aria-hidden`).
+ * @prop name   Icon name.
+ * @prop label  Accessible name; only when the icon carries meaning on its own.
+ * @prop class  Extra classes.
+ */
+import { icons, type IconName } from '../../lib/icons';
+
+interface Props {
+  name: IconName;
+  label?: string;
+  class?: string;
+}
+
+const { name, label, class: className } = Astro.props;
+const a11y = label ? { role: 'img' as const, 'aria-label': label } : { 'aria-hidden': 'true' as const };
+---
+
+<svg
+  class={className}
+  viewBox="0 0 24 24"
+  width="24"
+  height="24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.6"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  focusable="false"
+  {...a11y}
+  set:html={icons[name]}
+/>

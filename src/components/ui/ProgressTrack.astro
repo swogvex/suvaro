@@ -1,0 +1,25 @@
+---
+/**
+ * Progress track on a native <progress> (no inline styles, so it works under the strict CSP).
+ * Budget tone colors the fill by `budgetLevel`; use `tone="accent"` for goals.
+ * Always pair it with the value as visible text.
+ * @prop value  Percentage (0–100+; the bar is capped at 100).
+ * @prop label  Accessible name.
+ * @prop tone   budget (default) | accent.
+ */
+import { budgetLevel } from '../../lib/budget';
+
+interface Props {
+  value: number;
+  label: string;
+  tone?: 'budget' | 'accent';
+}
+
+const { value, label, tone = 'budget' } = Astro.props;
+const level = tone === 'accent' ? 'accent' : budgetLevel(value);
+const shown = Math.min(Math.max(value, 0), 100);
+---
+
+<progress class="progress" max="100" value={shown} aria-label={label} data-level={level}>
+  {value} %
+</progress>
