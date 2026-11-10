@@ -201,3 +201,35 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Printing (Stats › Export › PDF): A4, light colours from the system, no app chrome. Pages opt content out
+   with `data-print-hide` and provide their own print-only layout. */
+@page {
+  size: A4;
+  margin: 14mm;
+}
+
+@media print {
+  :root {
+    color-scheme: light;
+  }
+
+  html,
+  body {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .skip-link,
+  .app-header,
+  .dock,
+  .toaster,
+  .banner,
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  .app__main {
+    padding: 0 !important;
+  }
+}
