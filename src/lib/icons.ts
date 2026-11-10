@@ -74,3 +74,8 @@ export const icons = {
 } as const satisfies Record<string, string>;
 
 export type IconName = keyof typeof icons;
+
+/** A stored icon name (goal, category) as an `IconName`, or `fallback` when this set doesn't have it. */
+export function iconOr(name: string, fallback: IconName): IconName {
+  return Object.hasOwn(icons, name) ? (name as IconName) : fallback;
+}

@@ -15,6 +15,13 @@
       "when": 1794306035653,
       "tag": "0001_accounts",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794328136928,
+      "tag": "0002_plan",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 /** Unix time in milliseconds, read and written as `Date` (Better Auth expects dates). */
 const timestamp = (name: string) => integer(name, { mode: 'timestamp_ms' });
@@ -250,4 +250,73 @@ export const recurring = sqliteTable(
     updatedAt: updatedAt(),
   },
   (table) => [index('recurring_user_next_idx').on(table.userId, table.nextDate)],
+);
+
+/** Monthly spending limit for one category, or for all expenses when `category_id` is null (global). */
+export const budget = sqliteTable(
+  'budget',
+  {
+    id: text('id').primaryKey(),
+    userId: userId(),
+    /** Null = global limit. */
+    categoryId: text('category_id').references(() => category.id, { onDelete: 'cascade' }),
+    limitCents: integer('limit_cents').notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  // SQLite treats NULLs as distinct in unique indexes, so the global limit gets its own partial index.
+  (table) => [
+    uniqueIndex('budget_user_category_idx')
+      .on(table.userId, table.categoryId)
+      .where(sql`${table.categoryId} is not null`),
+    uniqueIndex('budget_user_global_idx')
+      .on(table.userId)
+      .where(sql`${table.categoryId} is null`),
+  ],
+);
+
+/** Savings goal. At most one per user is pinned to Home. */
+export const goal = sqliteTable(
+  'goal',
+  {
+    id: text('id').primaryKey(),
+    userId: userId(),
+    name: text('name').notNull(),
+    icon: text('icon').notNull(),
+    color: text('color', { enum: ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'] }).notNull(),
+    targetCents: integer('target_cents').notNull(),
+    /** `YYYY-MM-DD`, optional. */
+    deadline: text('deadline'),
+    pinned: integer('pinned', { mode: 'boolean' }).notNull().default(false),
+    completedAt: timestamp('completed_at'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    index('goal_user_idx').on(table.userId),
+    uniqueIndex('goal_user_pinned_idx')
+      .on(table.userId)
+      .where(sql`${table.pinned} = 1`),
+  ],
+);
+
+/** Money set aside for a goal: lowers "available" but is not an expense. */
+export const contribution = sqliteTable(
+  'contribution',
+  {
+    id: text('id').primaryKey(),
+    userId: userId(),
+    goalId: text('goal_id')
+      .notNull()
+      .references(() => goal.id, { onDelete: 'cascade' }),
+    amountCents: integer('amount_cents').notNull(),
+    /** `YYYY-MM-DD` in the user's time zone. */
+    date: text('date').notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    index('contribution_user_date_idx').on(table.userId, table.date),
+    index('contribution_goal_idx').on(table.goalId),
+  ],
 );

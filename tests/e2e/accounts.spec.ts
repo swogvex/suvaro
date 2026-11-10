@@ -191,8 +191,10 @@ test.describe('accounts', () => {
     await page.getByRole('button', { name: 'Start' }).click();
     await page.waitForURL(/\/app$/);
 
-    // Home + the "confirm your email" banner (passkey accounts start unconfirmed).
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Your account is ready');
+    // Home (with the income from onboarding) + the "confirm your email" banner (passkey accounts start
+    // unconfirmed).
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Hi');
+    await expect(page.getByTestId('available')).toHaveText('$1,850.00');
     await expect(page.getByRole('link', { name: 'Confirm email' })).toBeVisible();
     await expectNoHorizontalScroll(page);
     await expectNoAxeViolationsInThemes(page);
@@ -214,7 +216,7 @@ test.describe('accounts', () => {
     const signedIn = page.waitForURL(/\/app$/);
     await Promise.any([signedIn, page.getByRole('button', { name: 'Sign in with passkey' }).click()]);
     await signedIn;
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Your account is ready');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Hi');
     expect(errors).toEqual([]);
   });
 
@@ -381,7 +383,7 @@ test.describe('app shell', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Te damos la bienvenida a Suvaro');
     await page.getByRole('button', { name: 'Saltar configuración' }).click();
     await page.waitForURL(/\/app$/);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tu cuenta está lista');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Hola');
     const [codeEmail] = await emailsTo(email);
     expect(codeEmail?.subject).toMatch(/^Tu código de Suvaro: \d{6}$/);
   });

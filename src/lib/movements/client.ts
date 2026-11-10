@@ -18,6 +18,8 @@ export type MovementChange = { kind: 'upsert'; movement: Movement } | { kind: 'r
 export interface EditorRequest {
   movement?: Movement;
   date?: string;
+  /** Type for a new movement (default expense). */
+  type?: Movement['type'];
 }
 
 export function emitChange(change: MovementChange): void {
