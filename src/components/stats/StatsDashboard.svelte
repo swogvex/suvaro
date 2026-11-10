@@ -2,7 +2,8 @@
   Stats (island on /app/stats): period picker (Week · Month · Year · Custom + ‹ ›, keyboard ← →), export
   (CSV / print), then "What changed", spending by category, by month and cumulative savings. The first
   period arrives rendered from the server; others load from `GET /api/stats` with skeletons. A movement
-  saved anywhere on the page reloads the numbers quietly. A print-only report replaces it all on paper.
+  saved anywhere on the page reloads the numbers quietly. A print-only report, mounted only while printing,
+  replaces it all on paper.
   Props:
     initial       Data of the first period (`GET /api/stats` shape).
     today         The user's today, `YYYY-MM-DD`.
@@ -12,7 +13,7 @@
     messages      Translated strings.
 -->
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { flushSync, onMount } from 'svelte';
   import type { Locale } from '../../i18n';
   import { translator, type Messages } from '../../i18n/client';
   import { daysBetween } from '../../lib/dates';
@@ -143,6 +144,19 @@
 
   let reloadTimer: ReturnType<typeof setTimeout> | undefined;
 
+  /**
+   * The print report exists only while printing (Export › PDF or the browser's own print): it keeps the page
+   * light, and `beforeprint` lets the DOM change before the browser lays the page out.
+   */
+  let printing = $state(false);
+  function startPrinting() {
+    flushSync(() => (printing = true));
+  }
+  function print() {
+    startPrinting();
+    window.print();
+  }
+
   onMount(() => {
     hydrated = true;
     // Any write can move any number here (trends, months, savings): reload once the request has landed.
@@ -158,12 +172,17 @@
       if (event.key === 'ArrowLeft') goTo(shiftPeriod(shown, -1, settings));
       if (event.key === 'ArrowRight' && canGoNext) goTo(shiftPeriod(shown, 1, settings));
     };
+    const stopPrinting = () => (printing = false);
     window.addEventListener('keydown', onKey);
+    window.addEventListener('beforeprint', startPrinting);
+    window.addEventListener('afterprint', stopPrinting);
     return () => {
       stop();
       clearTimeout(reloadTimer);
       request?.abort();
       window.removeEventListener('keydown', onKey);
+      window.removeEventListener('beforeprint', startPrinting);
+      window.removeEventListener('afterprint', stopPrinting);
     };
   });
 
@@ -278,13 +297,7 @@
 <div class="stats" data-print-hide>
   <header class="stats__head">
     <h1>{t('app.stats')}</h1>
-    <ExportMenu
-      period={dataLabel}
-      disabled={!hydrated || loading}
-      onCsv={downloadCsv}
-      onPrint={() => window.print()}
-      {t}
-    />
+    <ExportMenu period={dataLabel} disabled={!hydrated || loading} onCsv={downloadCsv} onPrint={print} {t} />
   </header>
 
   <div class="stats__picker">
@@ -533,16 +546,18 @@
   {/if}
 </div>
 
-<PrintReport
-  {data}
-  period={dataLabel}
-  previousLabel={previousLegend}
-  {categoryName}
-  {today}
-  {locale}
-  {currency}
-  {t}
-/>
+{#if printing}
+  <PrintReport
+    {data}
+    period={dataLabel}
+    previousLabel={previousLegend}
+    {categoryName}
+    {today}
+    {locale}
+    {currency}
+    {t}
+  />
+{/if}
 
 <style>
   .stats {

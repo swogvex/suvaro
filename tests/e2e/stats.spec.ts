@@ -159,6 +159,9 @@ test.describe('stats with six months', () => {
     expect(lines.some((line) => line.includes(',Expense,Housing,850.00,Rent'))).toBe(true);
 
     // PDF: on paper only the report shows, and it fits an A4 page (182 mm wide inside the margins).
+    // The report is mounted only while printing; emulating print media does not fire `beforeprint`.
+    await expect(page.locator('.print-report')).toHaveCount(0);
+    await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
     await page.emulateMedia({ media: 'print' });
     await page.setViewportSize({ width: 688, height: 1000 });
     await expect(page.locator('.stats')).toBeHidden();
