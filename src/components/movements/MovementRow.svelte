@@ -214,6 +214,12 @@
       background: var(--surface-2);
     }
 
+    /* The amount hides under the actions completely (a long amount used to peek out on the left). */
+    .row:hover .row__amount,
+    .row:has(.row__actions:focus-within) .row__amount {
+      visibility: hidden;
+    }
+
     .row__edit {
       display: inline-grid;
     }

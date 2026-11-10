@@ -1,0 +1,76 @@
+---
+/**
+ * Light/dark toggle for the app (sun/moon icon button). Used in the mobile dock and the desktop header.
+ * The choice is kept in localStorage (saved to the profile with Settings › Appearance later) and the
+ * browser UI color (theme-color) follows it. Hidden until its script runs (it needs JS).
+ * @prop locale  Profile language.
+ * @prop class   Extra classes for the button.
+ */
+import Icon from '../ui/Icon.astro';
+import { useTranslations, type Locale } from '../../i18n';
+
+interface Props {
+  locale: Locale;
+  class?: string;
+}
+
+const { locale, class: className } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<button
+  class:list={['theme-toggle', className]}
+  type="button"
+  data-theme-toggle
+  data-label-dark={t('app.themeToDark')}
+  data-label-light={t('app.themeToLight')}
+  aria-label={t('app.themeToDark')}
+  hidden
+>
+  <Icon name="moon" class="theme-toggle__moon" />
+  <Icon name="sun" class="theme-toggle__sun" />
+</button>
+
+<script>
+  import { MODE_STORAGE_KEY, syncThemeColor } from '../../lib/theme';
+
+  const root = document.documentElement;
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')];
+
+  function sync() {
+    const dark = root.dataset['mode'] === 'dark';
+    for (const button of buttons) {
+      button.setAttribute(
+        'aria-label',
+        (dark ? button.dataset['labelLight'] : button.dataset['labelDark']) ?? '',
+      );
+    }
+    syncThemeColor();
+  }
+
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      const next = root.dataset['mode'] === 'dark' ? 'light' : 'dark';
+      root.dataset['mode'] = next;
+      try {
+        localStorage.setItem(MODE_STORAGE_KEY, next);
+      } catch {
+        // Storage blocked: the choice applies to this page only.
+      }
+      sync();
+    });
+    button.hidden = false;
+  }
+  sync();
+</script>
+
+<style>
+  .theme-toggle[hidden] {
+    display: none;
+  }
+
+  :global([data-mode='dark']) .theme-toggle :global(.theme-toggle__moon),
+  :global(:root:not([data-mode='dark'])) .theme-toggle :global(.theme-toggle__sun) {
+    display: none;
+  }
+</style>

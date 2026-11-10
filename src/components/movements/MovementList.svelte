@@ -355,6 +355,7 @@
   }
 
   .more__text {
+    justify-self: center;
     color: var(--ink-2);
     font-size: 0.875rem;
     text-align: center;

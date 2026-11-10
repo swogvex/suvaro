@@ -29,7 +29,7 @@ const options = [
 />
 
 <script>
-  import { MODE_STORAGE_KEY, parseMode, resolveMode, type Mode } from '../../lib/theme';
+  import { MODE_STORAGE_KEY, parseMode, resolveMode, syncThemeColor, type Mode } from '../../lib/theme';
 
   const root = document.documentElement;
   const darkQuery = matchMedia('(prefers-color-scheme: dark)');
@@ -45,6 +45,7 @@ const options = [
   function applyMode(mode: Mode): void {
     root.dataset['mode'] = resolveMode(mode, darkQuery.matches);
     root.dataset['accent'] = 'blue';
+    syncThemeColor();
   }
 
   function saveMode(mode: Mode): void {
@@ -68,6 +69,8 @@ const options = [
     });
     group.hidden = false;
   }
+
+  syncThemeColor();
 
   darkQuery.addEventListener('change', () => {
     if (storedMode() === 'system') applyMode('system');

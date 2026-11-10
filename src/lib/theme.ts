@@ -32,3 +32,15 @@ export function accentFor(mode: ResolvedMode, day: Accent, night: Accent): Accen
  * in tokens.css still picks the mode. Keep it tiny and in sync with `resolveMode` (covered by e2e tests).
  */
 export const themeInitScript = `(()=>{const d=document.documentElement;let m=null;try{m=localStorage.getItem('${MODE_STORAGE_KEY}')}catch{}if(m!=='light'&&m!=='dark')m=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';d.dataset.mode=m;d.dataset.accent='blue'})()`;
+
+/**
+ * Paints the browser UI (theme-color: status bar, iOS Safari toolbars) with the page's real ground, so it
+ * follows the chosen mode and accent instead of only the system setting.
+ */
+export function syncThemeColor(): void {
+  const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+  if (!bg) return;
+  for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
+    meta.content = bg;
+  }
+}

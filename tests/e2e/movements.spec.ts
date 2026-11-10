@@ -276,6 +276,39 @@ test.describe('movements', () => {
   });
 });
 
+test.describe('app shell polish', () => {
+  test('desktop header toggles light/dark and the browser color follows', async ({ page }, info) => {
+    test.skip(isMobile(info), 'On phones the toggle is in the dock');
+    await page.emulateMedia({ colorScheme: 'light' });
+    await newUser(page, 'theme');
+    const header = page.locator('.app-header');
+    await header.getByRole('button', { name: 'Switch to dark theme' }).click();
+    await expect(page.locator('html')).toHaveAttribute('data-mode', 'dark');
+    await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute('content', /^#12141c$/i);
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-mode', 'dark');
+    await header.getByRole('button', { name: 'Switch to light theme' }).click();
+    await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute('content', /^#f6f3ee$/i);
+  });
+
+  test('hovering a row hides its amount under the actions', async ({ page }, info) => {
+    test.skip(isMobile(info), 'Phones swipe instead of hover');
+    await newUser(page, 'hover');
+    await page.goto('/app/movements');
+    await addExpense(page, info, '1234.56', 'Food', 'Big amount');
+    await row(page, /Big amount/).hover();
+    await expect(page.locator('.row__amount').first()).toBeHidden();
+    await page.mouse.move(0, 0);
+    await expect(page.locator('.row__amount').first()).toBeVisible();
+    // The end of the list is centered in the column.
+    const end = await page.getByText('That’s everything.').boundingBox();
+    const column = await page.locator('.days').boundingBox();
+    expect(
+      Math.abs((end?.x ?? 0) + (end?.width ?? 0) / 2 - ((column?.x ?? 0) + (column?.width ?? 0) / 2)),
+    ).toBeLessThan(4);
+  });
+});
+
 test.describe('movements API', () => {
   test('needs a session and refuses bad input', async ({ page, request }) => {
     expect((await request.get('/api/movements')).status()).toBe(401);
