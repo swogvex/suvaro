@@ -7,14 +7,35 @@ export const defaultLocale: Locale = 'en';
 
 export const dictionaries: Record<Locale, Record<UiKey, string>> = { en, es };
 
+/** Open Graph locale tags (`og:locale`). */
+export const ogLocales: Record<Locale, string> = { en: 'en_US', es: 'es_ES' };
+
 export function isLocale(value: unknown): value is Locale {
   return typeof value === 'string' && (locales as readonly string[]).includes(value);
+}
+
+export function otherLocale(locale: Locale): Locale {
+  return locale === 'en' ? 'es' : 'en';
+}
+
+/** Replaces `{name}` placeholders; unknown placeholders are left as they are. */
+export function interpolate(text: string, vars: Record<string, string | number>): string {
+  return text.replace(/\{(\w+)\}/g, (match, name: string) => (name in vars ? String(vars[name]) : match));
 }
 
 /** Returns the translator for a locale; unknown locales fall back to English. */
 export function useTranslations(locale: string | undefined) {
   const dict = dictionaries[isLocale(locale) ? locale : defaultLocale];
-  return (key: UiKey): string => dict[key];
+  return (key: UiKey, vars?: Record<string, string | number>): string =>
+    vars ? interpolate(dict[key], vars) : dict[key];
+}
+
+/** Long date in the page language: "10 November 2026" / "10 de noviembre de 2026". */
+export function formatDate(date: Date, locale: Locale): string {
+  return new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : 'es-ES', {
+    dateStyle: 'long',
+    timeZone: 'UTC',
+  }).format(date);
 }
 
 export type { UiKey };
