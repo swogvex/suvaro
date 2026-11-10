@@ -80,6 +80,43 @@ test.describe('sign-in page', () => {
     await expectNoAxeViolations(page);
   });
 
+  test('keyboard only: create an account with a code and finish onboarding', async ({ page }) => {
+    const email = uniqueEmail('keyboard');
+    await page.goto('/sign-in?mode=create');
+    const emailInput = page.getByLabel('Email', { exact: true });
+    await expect(page.getByRole('button', { name: 'Send me a code' })).toBeEnabled();
+
+    await emailInput.focus();
+    await page.keyboard.type(email);
+    await page.keyboard.press('Tab');
+    await expect(page.getByLabel(/I’m 18 or older/)).toBeFocused();
+    await page.keyboard.press('Space');
+    await emailInput.focus();
+    await page.keyboard.press('Enter'); // the form's submit: "Send me a code"
+
+    // Focus moves to the first digit, so the code can be typed straight away.
+    const firstDigit = page.getByRole('textbox', { name: 'Digit 1 of 6' });
+    await expect(firstDigit).toBeFocused();
+    await page.keyboard.type(await codeFor(email));
+    await page.waitForURL('**/app/welcome');
+
+    // Onboarding: Enter in a text field submits the step (the default button is "Next", not "Back").
+    await expect(page.locator('[aria-current="step"]')).toContainText('Currency');
+    await page.getByRole('button', { name: 'Next' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('[aria-current="step"]')).toContainText('Income');
+    await page.getByLabel('Monthly income').focus();
+    await page.keyboard.type('1200');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('[aria-current="step"]')).toContainText('Categories');
+    await page.getByLabel('Food').focus();
+    await page.keyboard.press('Space');
+    await expect(page.getByLabel('Food')).not.toBeChecked();
+    await page.getByRole('button', { name: 'Start' }).focus();
+    await page.keyboard.press('Enter');
+    await page.waitForURL(/\/app$/);
+  });
+
   test('rejects an invalid email without calling the server', async ({ page }) => {
     await page.goto('/sign-in');
     await page.getByLabel('Email', { exact: true }).fill('not-an-email');
@@ -118,6 +155,7 @@ test.describe('sign-in page', () => {
 
 test.describe('accounts', () => {
   test('sign up with a passkey, onboard, sign out and sign back in with the passkey', async ({ page }) => {
+    test.slow(); // full flow plus axe in 6 themes on two pages
     const errors = collectErrors(page);
     await addVirtualAuthenticator(page);
     const email = uniqueEmail('passkey');
