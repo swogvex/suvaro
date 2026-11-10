@@ -605,20 +605,66 @@
     }
   }
 
+  /* From · To · Show on one row: the dates share the width, the button only takes what it needs and has the
+     same height as the inputs, so the row reads as one control. */
   .stats__range {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
     gap: var(--space-3);
-    align-items: flex-end;
+    align-items: end;
     width: 100%;
   }
 
   .stats__range .field {
-    flex: 1 1 9rem;
+    min-width: 0;
+  }
+
+  .stats__range .field__input {
+    min-width: 0;
+    min-height: 2.75rem;
   }
 
   .stats__range .field__error {
-    flex-basis: 100%;
+    grid-column: 1 / -1;
+  }
+
+  /* iOS Safari ignores width and height on a native date input until its appearance is reset, which made
+     the two dates overflow into each other and come out shorter than the button. */
+  @supports (-webkit-touch-callout: none) {
+    .stats__range .field__input {
+      display: flex;
+      align-items: center;
+      appearance: none;
+    }
+
+    .stats__range .field__input::-webkit-date-and-time-value {
+      text-align: start;
+    }
+  }
+
+  @media (max-width: 29.99rem) {
+    .stats__range {
+      gap: var(--space-2) var(--space-3);
+    }
+
+    /* Narrower padding, same 16 px text (smaller text makes iOS zoom in on focus). */
+    .stats__range .field__input {
+      padding-inline: var(--space-2);
+    }
+
+    .stats__range .btn {
+      padding-inline: var(--space-3);
+    }
+
+    /* The period switch spans the row instead of leaving a gap at its end. */
+    .segmented-group,
+    .stats__picker .segmented {
+      width: 100%;
+    }
+
+    .stats__picker .segmented__item {
+      flex: 1 1 auto;
+    }
   }
 
   .stats__nav {

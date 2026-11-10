@@ -29,10 +29,14 @@ const messages = Object.fromEntries(
     .map((key) => [key, t(key)]),
 );
 
-const reassurance: { icon: IconName; text: string }[] = [
+// The last two lines only show next to the form (wide screens), where the card is as tall as the form; on
+// phones the card sits above the form and stays short.
+const reassurance: { icon: IconName; text: string; wide?: boolean }[] = [
   { icon: 'key', text: t('signIn.heroLine1') },
   { icon: 'ban', text: t('signIn.heroLine2') },
   { icon: 'shield', text: t('signIn.heroLine3') },
+  { icon: 'smartphone', text: t('signIn.heroLine4'), wide: true },
+  { icon: 'gift', text: t('signIn.heroLine5'), wide: true },
 ];
 const title = initialMode === 'create' ? t('signIn.titleCreate') : t('signIn.title');
 ---
@@ -58,13 +62,14 @@ const title = initialMode === 'create' ? t('signIn.titleCreate') : t('signIn.tit
       <HeroCard as="section" class="intro" aria-labelledby="intro-title">
         <h1 id="intro-title">{t('signIn.heroTitle')}</h1>
         <ul class="intro__list">
-          {reassurance.map(({ icon, text }) => (
-            <li>
+          {reassurance.map(({ icon, text, wide }) => (
+            <li class:list={[wide && 'intro__wide']}>
               <Icon name={icon} />
               <span>{text}</span>
             </li>
           ))}
         </ul>
+        <p class="intro__note">{t('signIn.heroNote')}</p>
       </HeroCard>
 
       <section class="card panel" aria-label={title}>
@@ -159,7 +164,7 @@ const title = initialMode === 'create' ? t('signIn.titleCreate') : t('signIn.tit
   }
 
   /* As tall as the tallest step (create account with its errors, Spanish), so the card never jumps when
-     the mode changes, a box is ticked or an error appears. Measured: 633 px phone, 591 px desktop. */
+     the mode changes, a box is ticked or an error appears. Measured: 656 px phone, 619 px desktop. */
   .panel {
     min-height: 41.5rem;
     padding: var(--space-6);
@@ -183,13 +188,49 @@ const title = initialMode === 'create' ? t('signIn.titleCreate') : t('signIn.tit
     }
 
     .panel {
-      min-height: 38.5rem;
+      min-height: 39rem;
     }
 
     .intro {
       min-height: 100%;
       align-content: start;
+      gap: var(--space-8);
       padding: var(--space-8);
+    }
+
+    /* Title, list, then the note at the bottom: the card is as tall as the form, so it never looks half
+       empty. */
+    .intro {
+      grid-template-rows: auto auto 1fr;
+    }
+
+    .intro__list {
+      gap: var(--space-8);
+      font-size: 1.0625rem;
+    }
+
+    .intro__note {
+      align-self: end;
+      /* Clear of the decorative circle in the bottom corner. */
+      max-width: calc(100% - 5rem);
+      padding-block-start: var(--space-5);
+      border-block-start: 1px solid var(--hero-line);
+    }
+  }
+
+  @media (max-width: 51.99rem) {
+    .intro__note {
+      display: none;
+    }
+  }
+
+  .intro__list .intro__wide {
+    display: none;
+  }
+
+  @media (min-width: 52rem) {
+    .intro__list .intro__wide {
+      display: flex;
     }
   }
 </style>

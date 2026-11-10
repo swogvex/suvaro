@@ -63,6 +63,10 @@ export const es = {
   'signIn.heroLine1': 'Sin contraseñas: tu huella, tu cara o un código por email.',
   'signIn.heroLine2': 'Sin conectar con el banco y sin anuncios. Solo los números que escribes.',
   'signIn.heroLine3': 'Guardado en la UE. Exporta o borra todo cuando quieras.',
+  'signIn.heroLine4': 'Funciona en tu móvil y en tu ordenador, en español y en inglés.',
+  'signIn.heroLine5': 'Gratis y sin planes de pago. Tus datos nunca se venden.',
+  'signIn.heroNote':
+    'Suvaro es una libreta para tus propios números: no es un banco ni un servicio financiero.',
   'signIn.modeLabel': '¿Qué quieres hacer?',
   'signIn.modeSignIn': 'Entrar',
   'signIn.modeCreate': 'Crear cuenta',
