@@ -2,10 +2,10 @@
 /**
  * App header. Desktop (≥ 768 px): symbol + wordmark · section tabs · avatar (→ Settings).
  * Desktop also has the light/dark toggle (on phones it lives in the dock).
- * Mobile: page title (wordmark on Home) · avatar. Section tabs live in the Dock on mobile.
+ * Mobile: symbol + wordmark (a quick way back to Home; the page h1 names the page) · search · avatar.
+ * Section tabs live in the Dock on mobile.
  * @prop locale   Profile language.
  * @prop section  Active section, for `aria-current`.
- * @prop title    Page title shown on mobile.
  * @prop nav      Shows the tabs and the avatar (off during onboarding).
  */
 import Icon from '../ui/Icon.astro';
@@ -18,30 +18,18 @@ import { appPaths } from '../../lib/routes';
 interface Props {
   locale: Locale;
   section: AppSection | 'settings';
-  title: string;
   nav?: boolean;
 }
 
-const { locale, section, title, nav = true } = Astro.props;
+const { locale, section, nav = true } = Astro.props;
 const t = useTranslations(locale);
-// Mobile shows the page title, except on Home and during onboarding, where it shows the wordmark.
-const showTitle = nav && section !== 'home';
 ---
 
 <header class="app-header">
   <div class="container app-header__inner">
-    <a
-      class:list={['app-header__brand', !showTitle && 'app-header__brand--always']}
-      href={appPaths.app}
-      aria-label={t('app.homeLabel')}
-    >
+    <a class="app-header__brand" href={appPaths.app} aria-label={t('app.homeLabel')}>
       <Logo />
     </a>
-    {showTitle && (
-      <p class="app-header__title" aria-hidden="true">
-        {title}
-      </p>
-    )}
     {nav && (
       <>
         <nav class="app-header__nav" aria-label={t('app.navLabel')}>
@@ -94,24 +82,10 @@ const showTitle = nav && section !== 'home';
   }
 
   .app-header__brand {
-    display: none;
+    display: block;
     color: var(--ink);
     text-decoration: none;
     border-radius: var(--radius-s);
-  }
-
-  .app-header__brand--always {
-    display: block;
-  }
-
-  .app-header__title {
-    overflow: hidden;
-    font-family: var(--font-display);
-    font-size: 1.25rem;
-    font-weight: 600;
-    letter-spacing: var(--tracking-display);
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .app-header__nav {
@@ -202,13 +176,8 @@ const showTitle = nav && section !== 'home';
   }
 
   @media (min-width: 48rem) {
-    .app-header__brand,
     .app-header__nav {
       display: block;
-    }
-
-    .app-header__title {
-      display: none;
     }
 
     .app-header__search {

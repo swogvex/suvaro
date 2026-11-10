@@ -291,6 +291,28 @@ test.describe('app shell polish', () => {
     await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute('content', /^#f6f3ee$/i);
   });
 
+  test('the header always shows the wordmark, which leads Home', async ({ page }, info) => {
+    await newUser(page, 'brand');
+    for (const path of [
+      '/app/movements',
+      '/app/movements/calendar',
+      '/app/stats',
+      '/app/plan',
+      '/app/settings/security',
+    ]) {
+      await page.goto(path);
+      const header = page.locator('.app-header');
+      await expect(header.getByRole('link', { name: 'Suvaro, home' })).toBeVisible();
+      if (isMobile(info)) {
+        // Phones: the page name is said once, by the h1 (desktop tabs legitimately repeat it).
+        const h1 = (await page.getByRole('heading', { level: 1 }).textContent())?.trim() ?? '';
+        await expect(header.getByText(h1, { exact: true })).toBeHidden();
+      }
+    }
+    await page.locator('.app-header').getByRole('link', { name: 'Suvaro, home' }).click();
+    await expect(page).toHaveURL(/\/app$/);
+  });
+
   test('hovering a row hides its amount under the actions', async ({ page }, info) => {
     test.skip(isMobile(info), 'Phones swipe instead of hover');
     await newUser(page, 'hover');
