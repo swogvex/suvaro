@@ -502,6 +502,17 @@
     justify-content: space-between;
   }
 
+  /* Next to the reassurance card the panel is tall: give the parts room instead of bunching them up. */
+  @media (min-width: 52rem) {
+    .sign-in {
+      gap: var(--space-6);
+    }
+
+    .sign-in__form {
+      gap: var(--space-5);
+    }
+  }
+
   .code {
     min-inline-size: 0;
     margin: 0;
