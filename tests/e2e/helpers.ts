@@ -14,6 +14,11 @@ export function collectErrors(page: Page): string[] {
 }
 
 export async function expectNoAxeViolations(page: Page) {
+  // After a theme or color-scheme switch, even a 0.01 ms (reduced motion) color transition still reports
+  // the old color until the next frame; wait two frames so axe measures the final colors.
+  await page.evaluate(
+    () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(() => done(null)))),
+  );
   const { violations } = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
     .analyze();

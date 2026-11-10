@@ -45,6 +45,8 @@ test.describe('home', () => {
   test('empty state, then every block follows new movements at once and after reload', async ({
     page,
   }, info) => {
+    // Sign-up, three saves, a reload and axe in 6 themes twice: about 18 s, more on a busy machine.
+    test.slow();
     const errors = collectErrors(page);
     await newUser(page, 'home');
 
@@ -91,6 +93,9 @@ test.describe('home', () => {
     await page.getByRole('button', { name: 'View as table' }).click();
     await expect(page.getByRole('table')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Hide table' })).toHaveAttribute('aria-expanded', 'true');
+    // The table says what was spent each day, apart from the running totals.
+    await expect(page.getByRole('columnheader', { name: 'Spent that day' })).toBeVisible();
+    await expect(page.getByRole('table').getByRole('cell', { name: '€23.85' }).first()).toBeVisible();
 
     await expectNoHorizontalScroll(page);
     await expectNoAxeViolationsInThemes(page);

@@ -81,6 +81,20 @@ test.describe('sign-in page', () => {
     await expectNoAxeViolations(page);
   });
 
+  test('the card keeps its size across modes and errors', async ({ page }) => {
+    await page.goto('/sign-in');
+    const panel = page.locator('.panel');
+    const height = async () => Math.round((await panel.boundingBox())?.height ?? 0);
+    const first = await height();
+    await page.getByRole('button', { name: 'Send me a code' }).click();
+    await expect(page.getByRole('alert')).toBeVisible();
+    expect(await height()).toBe(first);
+    await page.goto('/sign-in?mode=create');
+    await page.getByRole('button', { name: 'Send me a code' }).click();
+    await expect(page.getByRole('alert')).toBeVisible();
+    expect(await height()).toBe(first);
+  });
+
   test('keyboard only: create an account with a code and finish onboarding', async ({ page }) => {
     const email = uniqueEmail('keyboard');
     await page.goto('/sign-in?mode=create');
