@@ -310,6 +310,11 @@ const structuredData = {
     color: var(--ink-2);
   }
 
+  /* The column is already narrow (48 rem): the global 65 ch cap left an empty strip on the right. */
+  .faq__answer :global(p) {
+    max-width: none;
+  }
+
   .cta {
     display: grid;
     gap: var(--space-5);
