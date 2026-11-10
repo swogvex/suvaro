@@ -11,5 +11,7 @@ overrides:
   '@vercel/routing-utils>path-to-regexp': ^6.3.0
   '@vercel/nft>glob': ^14.0.2
   minimatch@>=7 <11.0.1: ^11.0.1
+  # GHSA-67mh-4wv8-2f99: drizzle-kit's legacy loader (@esbuild-kit/core-utils, unmaintained) pins esbuild 0.18.
+  '@esbuild-kit/core-utils>esbuild': ^0.25.0
   # Compatibility: keep the emnapi runtime on the same release line as @emnapi/core (a 2.0 beta breaks astro check).
   '@emnapi/runtime': 1.11.3
