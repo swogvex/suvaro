@@ -7,7 +7,7 @@
 import Button from '../ui/Button.astro';
 import Logo from '../ui/Logo.astro';
 import { otherLocale, useTranslations, type Locale } from '../../i18n';
-import { appPaths, homePath, type Alternates } from '../../lib/routes';
+import { homePath, signInPath, type Alternates } from '../../lib/routes';
 
 interface Props {
   locale: Locale;
@@ -44,7 +44,7 @@ const anchor = (id: string) => (onHome ? `#${id}` : `${home}#${id}`);
     <a class="site-header__lang" href={alternates[other]} hreflang={other} lang={other}>
       {tOther('lang.name')}
     </a>
-    <Button href={appPaths.signIn} variant="secondary">
+    <Button href={signInPath(locale)} variant="secondary">
       {t('nav.signIn')}
     </Button>
   </div>

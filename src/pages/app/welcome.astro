@@ -1,0 +1,544 @@
+---
+/**
+ * Onboarding, 3 skippable steps, server-rendered (no client JS besides filling the time zone).
+ * Every step posts back here with the earlier answers as hidden fields; "Start" or "Skip setup" saves
+ * everything in one transaction and goes to Home. See `src/lib/onboarding.ts`.
+ */
+import OnboardingHidden from '../../components/app/OnboardingHidden.astro';
+import Button from '../../components/ui/Button.astro';
+import Card from '../../components/ui/Card.astro';
+import CategoryTile from '../../components/ui/CategoryTile.astro';
+import Field from '../../components/ui/Field.astro';
+import Icon from '../../components/ui/Icon.astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+import { dictionaries, locales, useTranslations, type UiKey } from '../../i18n';
+import { isTimeZone } from '../../lib/dates';
+import { db } from '../../lib/db';
+import { colorIndex, defaultCategories } from '../../lib/default-categories';
+import { describeError, logError } from '../../lib/errors';
+import {
+  completeOnboarding,
+  initialState,
+  isCurrency,
+  ONBOARDING_STEPS,
+  readState,
+  stepOfError,
+  validateAll,
+  validateStep,
+  type OnboardingState,
+  type Step,
+  type StepErrors,
+} from '../../lib/onboarding';
+import { appPaths } from '../../lib/routes';
+
+const { user, profile } = Astro.locals;
+if (!user || !profile) throw new Error('Signed-in page');
+
+// Best first guess for the time zone (Vercel's IP header); the page script replaces it with the browser's.
+const ipTimeZone = Astro.request.headers.get('x-vercel-ip-timezone') ?? '';
+const fallback = initialState(
+  profile.locale,
+  profile.currency,
+  isTimeZone(ipTimeZone) ? ipTimeZone : profile.timezone,
+);
+
+let state: OnboardingState = fallback;
+let step: Step = 1;
+let errors: StepErrors = {};
+let saveFailed = false;
+
+async function finish(answers: OnboardingState): Promise<Response | null> {
+  const tFinal = useTranslations(answers.locale);
+  try {
+    await completeOnboarding(db, user!.id, answers, (key) => tFinal(`category.${key}`));
+    return Astro.redirect(appPaths.app, 303);
+  } catch (error) {
+    await logError(appPaths.welcome, 'ONBOARDING_SAVE_FAILED', describeError(error));
+    saveFailed = true;
+    return null;
+  }
+}
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  state = readState(form, fallback);
+  const posted = Number(form.get('step'));
+  const from: Step = posted === 2 || posted === 3 ? posted : 1;
+  const nav = form.get('nav');
+
+  if (nav === 'skip') {
+    const skipped: OnboardingState = {
+      ...fallback,
+      locale: state.locale,
+      timezone: state.timezone,
+      currency: isCurrency(state.currency) ? state.currency : fallback.currency,
+    };
+    const done = await finish(skipped);
+    if (done) return done;
+    step = from;
+  } else if (nav === 'back') {
+    step = from === 3 ? 2 : 1;
+  } else {
+    errors = validateStep(from, state);
+    if (Object.keys(errors).length > 0) {
+      step = from;
+    } else if (from < 3) {
+      step = from === 1 ? 2 : 3;
+    } else {
+      errors = validateAll(state);
+      const errorStep = stepOfError(errors);
+      if (errorStep) {
+        step = errorStep;
+      } else {
+        const done = await finish(state);
+        if (done) return done;
+        step = 3;
+      }
+    }
+  }
+}
+
+const locale = state.locale;
+const t = useTranslations(locale);
+const numberFormat = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, useGrouping: 'always' });
+const example = numberFormat.format(1850);
+const errorText = (key: UiKey | undefined) => (key ? t(key, { example }) : undefined);
+
+const currencyNames = new Intl.DisplayNames(locale, { type: 'currency' });
+const commonCurrencies = ['EUR', 'USD', 'GBP', 'CHF', 'MXN', 'ARS', 'COP', 'CLP', 'PEN'];
+const allCurrencies = Intl.supportedValuesOf('currency')
+  .map((code) => ({ code, name: currencyNames.of(code) ?? code }))
+  .sort((a, b) => a.name.localeCompare(b.name, locale));
+const currencyLabel = (code: string) => `${currencyNames.of(code) ?? code} (${code})`;
+
+const stepNames: Record<Step, UiKey> = {
+  1: 'onboarding.step1',
+  2: 'onboarding.step2',
+  3: 'onboarding.step3',
+};
+const stepTitles: Record<Step, UiKey> = {
+  1: 'onboarding.step1Title',
+  2: 'onboarding.step2Title',
+  3: 'onboarding.step3Title',
+};
+const stepLeads: Record<Step, UiKey> = {
+  1: 'onboarding.step1Lead',
+  2: 'onboarding.step2Lead',
+  3: 'onboarding.step3Lead',
+};
+const shown = {
+  1: ['currency', 'locale'],
+  2: ['income', 'repeatIncome', 'savings'],
+  3: ['categories'],
+} as const;
+---
+
+<AppLayout title={t('onboarding.title')} section="home" bare>
+  <div class="welcome">
+    <div class="welcome__top">
+      <h1>{t('onboarding.title')}</h1>
+      <form method="post" id="wizard-skip">
+        <OnboardingHidden state={state} />
+        <input type="hidden" name="step" value={step} />
+        <input type="hidden" name="nav" value="skip" />
+        <Button type="submit" variant="ghost">
+          {t('onboarding.skip')}
+        </Button>
+      </form>
+    </div>
+
+    <ol class="steps" aria-label={t('onboarding.stepsLabel')}>
+      {ONBOARDING_STEPS.map((n) => (
+        <li
+          class:list={['steps__item', n === step && 'steps__item--current', n < step && 'steps__item--done']}
+          aria-current={n === step ? 'step' : undefined}
+        >
+          <span class="steps__num">{n < step ? <Icon name="check" /> : n}</span>
+          <span>{t(stepNames[n])}</span>
+        </li>
+      ))}
+    </ol>
+
+    <Card class="panel">
+      <form method="post" id="wizard-back">
+        <OnboardingHidden state={state} />
+        <input type="hidden" name="step" value={step} />
+        <input type="hidden" name="nav" value="back" />
+      </form>
+
+      <form method="post" class="wizard" novalidate>
+        <OnboardingHidden state={state} omit={shown[step]} />
+        <input type="hidden" name="step" value={step} />
+
+        <div class="wizard__head">
+          <p class="wizard__count">{t('onboarding.step', { n: step })}</p>
+          <h2>{t(stepTitles[step])}</h2>
+          <p class="wizard__lead">{t(stepLeads[step])}</p>
+        </div>
+
+        {saveFailed && (
+          <p class="wizard__error" role="alert">
+            <Icon name="alert" />
+            {t('onboarding.errorSave')}
+          </p>
+        )}
+
+        {step === 1 && (
+          <div class="wizard__fields">
+            <div class="field">
+              <label class="field__label" for="currency">
+                {t('onboarding.currency')}
+              </label>
+              <select
+                class="field__input"
+                id="currency"
+                name="currency"
+                aria-invalid={errors.currency ? 'true' : undefined}
+                aria-describedby={errors.currency ? 'currency-error' : undefined}
+              >
+                <optgroup label={t('onboarding.currencyCommon')}>
+                  {commonCurrencies.map((code) => (
+                    <option value={code} selected={state.currency === code}>
+                      {currencyLabel(code)}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label={t('onboarding.currencyAll')}>
+                  {allCurrencies
+                    .filter(({ code }) => !commonCurrencies.includes(code))
+                    .map(({ code, name }) => (
+                      <option value={code} selected={state.currency === code}>
+                        {`${name} (${code})`}
+                      </option>
+                    ))}
+                </optgroup>
+              </select>
+              {errors.currency && (
+                <p class="field__error" id="currency-error">
+                  <Icon name="ban" />
+                  {errorText(errors.currency)}
+                </p>
+              )}
+            </div>
+
+            <fieldset class="segmented-group">
+              <legend class="field__label">{t('onboarding.language')}</legend>
+              <div class="segmented">
+                {locales.map((code) => (
+                  <label class="segmented__item" lang={code}>
+                    <input type="radio" name="locale" value={code} checked={state.locale === code} />
+                    <span>{dictionaries[code]['lang.name']}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div class="wizard__fields">
+            <Field
+              id="income"
+              name="income"
+              label={t('onboarding.income')}
+              hint={t('onboarding.incomeHint', { example })}
+              error={errorText(errors.income)}
+              value={state.income}
+              amount
+            />
+            <input type="hidden" name="repeatIncome" value="off" />
+            <label class="check">
+              <input type="checkbox" name="repeatIncome" value="on" checked={state.repeatIncome} />
+              <span>{t('onboarding.repeatIncome')}</span>
+            </label>
+            <Field
+              id="savings"
+              name="savings"
+              label={t('onboarding.savings')}
+              hint={t('onboarding.savingsHint')}
+              error={errorText(errors.savings)}
+              value={state.savings}
+              amount
+            />
+          </div>
+        )}
+
+        {step === 3 && (
+          <fieldset class="cats" aria-describedby={errors.categories ? 'categories-error' : undefined}>
+            <legend class="visually-hidden">{t('onboarding.categoriesLegend')}</legend>
+            <input type="hidden" name="categoriesSent" value="1" />
+            {errors.categories && (
+              <p class="field__error" id="categories-error">
+                <Icon name="ban" />
+                {errorText(errors.categories)}
+              </p>
+            )}
+            <ul class="cats__list">
+              {defaultCategories.map(({ key, icon, color }) => (
+                <li>
+                  <label class="cat">
+                    <input
+                      type="checkbox"
+                      name="categories"
+                      value={key}
+                      checked={state.categories.includes(key)}
+                    />
+                    <CategoryTile icon={icon} color={colorIndex(color)} size="sm" />
+                    <span class="cat__name">{t(`category.${key}`)}</span>
+                    <Icon name="check" class="cat__check" />
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </fieldset>
+        )}
+
+        <div class="wizard__actions">
+          {step > 1 && (
+            <Button type="submit" variant="secondary" form="wizard-back" icon="arrow-left">
+              {t('onboarding.back')}
+            </Button>
+          )}
+          <Button type="submit" variant="primary" name="nav" value="next" class="wizard__next">
+            {step === 3 ? t('onboarding.start') : t('onboarding.next')}
+          </Button>
+        </div>
+      </form>
+    </Card>
+  </div>
+</AppLayout>
+
+<script>
+  // Use the browser's time zone (more precise than the IP guess) for "day 1" and dates.
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (zone) {
+    for (const input of document.querySelectorAll<HTMLInputElement>('input[data-timezone]'))
+      input.value = zone;
+  }
+</script>
+
+<style>
+  .welcome {
+    display: grid;
+    gap: var(--space-6);
+    width: 100%;
+    max-width: 40rem;
+    margin-inline: auto;
+  }
+
+  .welcome__top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .steps__item {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    min-height: 2.25rem;
+    padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface);
+    color: var(--ink-2);
+    font-weight: 500;
+  }
+
+  .steps__item--current {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .steps__num {
+    display: inline-grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--radius-xs);
+    background: var(--surface-2);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 0.8125rem;
+  }
+
+  .steps__num :global(svg) {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .steps__item--done .steps__num {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .panel {
+    padding: var(--space-6);
+  }
+
+  .wizard {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .wizard__head {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .wizard__head h2 {
+    font-size: 1.375rem;
+    line-height: 1.1;
+  }
+
+  .wizard__count {
+    color: var(--ink-2);
+    font-size: 0.8125rem;
+    font-weight: 500;
+  }
+
+  .wizard__lead {
+    color: var(--ink-2);
+  }
+
+  .wizard__error {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    color: var(--negative);
+    font-weight: 500;
+  }
+
+  .wizard__error :global(svg) {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .wizard__fields {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .segmented-group {
+    display: grid;
+    gap: var(--space-2);
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .segmented-group legend {
+    padding: 0;
+  }
+
+  .check {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  .check input {
+    flex: none;
+    width: 1.375rem;
+    height: 1.375rem;
+    margin: 0;
+    accent-color: var(--accent);
+  }
+
+  .cats {
+    display: grid;
+    gap: var(--space-3);
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .cats__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cat {
+    position: relative;
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    min-height: 2.75rem;
+    padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface);
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+
+  /* The real checkbox covers the whole chip (invisible), so a click anywhere toggles it. */
+  .cat input {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .cat:has(input:checked) {
+    border-color: var(--ink);
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .cat:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .cat__name {
+    flex: 1;
+  }
+
+  .cat :global(.cat__check) {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    color: var(--accent);
+    visibility: hidden;
+  }
+
+  .cat:has(input:checked) :global(.cat__check) {
+    visibility: visible;
+  }
+
+  .cat:not(:has(input:checked)) :global(.cat-tile) {
+    opacity: 0.45;
+  }
+
+  .wizard__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    justify-content: flex-end;
+  }
+</style>

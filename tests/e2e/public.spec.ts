@@ -11,7 +11,7 @@ const pages = [
 ] as const;
 
 /** Links that point to app routes built in later milestones. */
-const notYetBuilt = new Set(['/app', '/sign-in', '/demo']);
+const notYetBuilt = new Set(['/demo']);
 
 const themes = (['light', 'dark'] as const).flatMap((mode) =>
   (['blue', 'red', 'green'] as const).map((accent) => ({ mode, accent })),

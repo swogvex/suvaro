@@ -45,3 +45,44 @@ export function percent(part: number, total: number): number {
   if (total === 0) return 0;
   return Math.round((part / total) * 100);
 }
+
+const decimalSeparator: Record<Locale, string> = { en: '.', es: ',' };
+
+/**
+ * Parses an amount typed by the user into integer cents, or null when it is not a valid positive amount.
+ * Accepts the locale's decimal separator, grouping separators and a currency symbol, and forgives the other
+ * decimal separator when it cannot be grouping ("12.5" in Spanish): "1.234,56" (es) / "1,234.56" (en) → 123456.
+ */
+export function parseAmount(input: string, locale: Locale): number | null {
+  const text = input.replace(/[\s\u00A0\u202F]/g, '').replace(/[^\d.,-]/g, '');
+  if (!/^\d[\d.,]*$/.test(text)) return null;
+
+  const decimal = decimalSeparator[locale];
+  const grouping = decimal === '.' ? ',' : '.';
+  let whole = text;
+  let fraction = '';
+
+  const lastDecimal = text.lastIndexOf(decimal);
+  if (lastDecimal !== -1) {
+    whole = text.slice(0, lastDecimal);
+    fraction = text.slice(lastDecimal + 1);
+    if (whole.includes(decimal)) return null;
+  } else {
+    const lastGrouping = text.lastIndexOf(grouping);
+    const tail = lastGrouping === -1 ? '' : text.slice(lastGrouping + 1);
+    const once = text.indexOf(grouping) === lastGrouping;
+    if (lastGrouping !== -1 && once && tail.length > 0 && tail.length <= 2) {
+      whole = text.slice(0, lastGrouping);
+      fraction = tail;
+    }
+  }
+
+  if (!/^\d{1,2}$|^$/.test(fraction)) return null;
+  const groups = whole.split(grouping);
+  if (groups.some((group) => group === '' || !/^\d+$/.test(group))) return null;
+  if (groups.length > 1 && groups.slice(1).some((group) => group.length !== 3)) return null;
+
+  const cents = Number(groups.join('')) * 100 + Number(fraction.padEnd(2, '0'));
+  if (!Number.isSafeInteger(cents) || cents > MAX_AMOUNT_CENTS) return null;
+  return cents;
+}

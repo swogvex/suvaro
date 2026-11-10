@@ -1,0 +1,135 @@
+---
+/**
+ * Layout for signed-in pages (`/app/...`): header, offline banner, email-confirmation banner, main,
+ * toasts and the mobile dock. noindex; language from the profile (the middleware sets `Astro.locals`).
+ * @prop title    Page title (also shown in the mobile header).
+ * @prop section  Active section for the header tabs and the dock.
+ * @prop bare     Hides the tabs and dock (onboarding).
+ */
+import AppHeader from '../components/app/AppHeader.astro';
+import Dock from '../components/app/Dock.astro';
+import Toaster from '../components/app/Toaster.astro';
+import Icon from '../components/ui/Icon.astro';
+import BaseLayout from './BaseLayout.astro';
+import { useTranslations } from '../i18n';
+import type { AppSection } from '../lib/app-nav';
+import { appPaths } from '../lib/routes';
+import { flashMessageKey } from '../lib/toast';
+
+interface Props {
+  title: string;
+  section: AppSection | 'settings';
+  bare?: boolean;
+}
+
+const { title, section, bare = false } = Astro.props;
+const { profile, user } = Astro.locals;
+if (!profile || !user) throw new Error('AppLayout needs a signed-in request');
+
+const locale = profile.locale;
+const t = useTranslations(locale);
+const flash = flashMessageKey(Astro.url.searchParams.get('done'));
+const showVerify = !user.emailVerified && Astro.url.pathname !== appPaths.verifyEmail;
+---
+
+<BaseLayout title={`${title} · Suvaro`} description={title} locale={locale} noindex>
+  <div class:list={['app', bare && 'app--bare']}>
+    <AppHeader locale={locale} section={section} title={title} nav={!bare} />
+
+    <main id="main" class="container app__main">
+      <p class="banner banner--offline" data-offline-banner hidden>
+        <Icon name="wifi-off" />
+        <span>{t('app.offline')}</span>
+      </p>
+
+      {showVerify && (
+        <p class="banner banner--verify">
+          <Icon name="mail" />
+          <span>
+            {t('app.verifyBanner')} <a href={appPaths.verifyEmail}>{t('app.verifyBannerAction')}</a>
+          </span>
+        </p>
+      )}
+
+      <slot />
+      <Toaster locale={locale} message={flash && t(flash)} />
+    </main>
+
+    {!bare && <Dock locale={locale} section={section} />}
+  </div>
+</BaseLayout>
+
+<script>
+  // Offline: show the banner and block saving (submit buttons) until the connection is back.
+  const banner = document.querySelector<HTMLElement>('[data-offline-banner]');
+
+  function sync() {
+    const offline = !navigator.onLine;
+    if (banner) banner.hidden = !offline;
+    for (const button of document.querySelectorAll<HTMLButtonElement>('main button[type="submit"]')) {
+      if (offline) {
+        if (!button.disabled) button.dataset['offlineDisabled'] = 'true';
+        button.disabled = true;
+      } else if (button.dataset['offlineDisabled']) {
+        delete button.dataset['offlineDisabled'];
+        button.disabled = false;
+      }
+    }
+  }
+
+  window.addEventListener('online', sync);
+  window.addEventListener('offline', sync);
+  sync();
+</script>
+
+<style>
+  .app__main {
+    display: grid;
+    gap: var(--space-6);
+    align-content: start;
+    padding-block: var(--space-4) 170px;
+  }
+
+  .banner {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-m);
+    color: var(--ink);
+  }
+
+  .banner :global(svg) {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .banner--verify {
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  .banner--verify :global(svg) {
+    color: var(--accent);
+  }
+
+  .banner--offline {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .banner[hidden] {
+    display: none;
+  }
+
+  @media (min-width: 48rem) {
+    .app__main {
+      padding-block-end: var(--space-12);
+    }
+  }
+
+  .app--bare .app__main {
+    padding-block-end: var(--space-12);
+  }
+</style>

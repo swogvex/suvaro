@@ -1,0 +1,11 @@
+---
+import ComingSoon from '../../components/app/ComingSoon.astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+import { useTranslations } from '../../i18n';
+
+const t = useTranslations(Astro.locals.profile?.locale);
+---
+
+<AppLayout title={t('app.movements')} section="movements">
+  <ComingSoon title={t('app.movements')} text={t('app.soonMovements')} icon="list" />
+</AppLayout>

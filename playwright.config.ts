@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+import { OUTBOX_DIR } from './tests/e2e/outbox';
+
 const PORT = 4321;
 const isCI = Boolean(process.env['CI']);
 
@@ -14,12 +16,13 @@ export default defineConfig({
     { name: 'mobile', use: { ...devices['Desktop Chrome'], viewport: { width: 360, height: 800 } } },
     { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
   ],
-  // Production build with the Node adapter (same server CI and Lighthouse use).
+  // Production build with the Node adapter (same server CI and Lighthouse use), on the migrated local
+  // database. Emails go to files in EMAIL_OUTBOX_DIR so tests can read sign-in codes.
   webServer: {
-    command: 'pnpm build:node && pnpm start:node',
+    command: 'pnpm db:migrate && pnpm build:node && pnpm start:node',
     url: `http://localhost:${PORT}`,
-    reuseExistingServer: !isCI,
-    timeout: 180_000,
-    env: { HOST: '127.0.0.1', PORT: String(PORT) },
+    reuseExistingServer: false,
+    timeout: 240_000,
+    env: { HOST: '127.0.0.1', PORT: String(PORT), EMAIL_OUTBOX_DIR: OUTBOX_DIR },
   },
 });

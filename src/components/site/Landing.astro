@@ -13,7 +13,7 @@ import HeroCard from '../ui/HeroCard.astro';
 import Icon from '../ui/Icon.astro';
 import { useTranslations, type Locale } from '../../i18n';
 import type { IconName } from '../../lib/icons';
-import { appPaths, homeAlternates, homePath } from '../../lib/routes';
+import { appPaths, homeAlternates, homePath, signInPath } from '../../lib/routes';
 import { holderName, siteName } from '../../lib/site';
 
 interface Props {
@@ -70,7 +70,7 @@ const structuredData = {
       </h1>
       <p class="hero__sub">{hero.sub}</p>
       <div class="actions">
-        <Button href={appPaths.signIn} variant="primary" size="lg">
+        <Button href={signInPath(locale, 'create')} variant="primary" size="lg">
           {hero.primaryCta}
         </Button>
         <Button href={appPaths.demo} variant="secondary" size="lg">
@@ -136,7 +136,7 @@ const structuredData = {
         <p>{finalCta.text}</p>
       </div>
       <div class="actions">
-        <Button href={appPaths.signIn} variant="primary" size="lg">
+        <Button href={signInPath(locale, 'create')} variant="primary" size="lg">
           {finalCta.primary}
         </Button>
         <Button href={appPaths.demo} variant="secondary" size="lg">

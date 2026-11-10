@@ -54,4 +54,10 @@ const pages = defineCollection({
   }),
 });
 
-export const collections = { landing, faq, legal, pages };
+/** Transactional emails. Body placeholders: `{{code}}`, `{{deleteDate}}`, `{{signInUrl}}`. */
+const emails = defineCollection({
+  loader: glob({ pattern: '{en,es}/*.md', base: './src/content/emails', generateId }),
+  schema: z.object({ subject: z.string().min(1).max(80), preheader: z.string().max(120) }),
+});
+
+export const collections = { landing, faq, legal, pages, emails };

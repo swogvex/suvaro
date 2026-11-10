@@ -48,5 +48,22 @@ export function localeFromPath(pathname: string): Locale {
   return pathname === '/es' || pathname.startsWith('/es/') ? 'es' : 'en';
 }
 
-/** App links that exist from later milestones on; kept here so pages never hard-code them. */
-export const appPaths = { app: '/app', signIn: '/sign-in', demo: '/demo' } as const;
+/** Sign-in page per language (noindex; not in the sitemap). */
+export const signInPaths: Alternates = { en: '/sign-in', es: '/es/acceso' };
+
+export function signInPath(locale: Locale, mode: 'sign-in' | 'create' = 'sign-in'): string {
+  return mode === 'create' ? `${signInPaths[locale]}?mode=create` : signInPaths[locale];
+}
+
+/** App routes have no language prefix: they use the profile language. */
+export const appPaths = {
+  app: '/app',
+  welcome: '/app/welcome',
+  movements: '/app/movements',
+  stats: '/app/stats',
+  plan: '/app/plan',
+  settings: '/app/settings',
+  security: '/app/settings/security',
+  verifyEmail: '/app/verify-email',
+  demo: '/demo',
+} as const;

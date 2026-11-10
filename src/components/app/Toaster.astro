@@ -1,0 +1,109 @@
+---
+/**
+ * Toast region: one toast at a time, ink background, `role="status"`. Mobile: top, under the header.
+ * Desktop: bottom-right. Shows `message` from the server (e.g. after a form post) and any message sent with
+ * `showToast()` from `src/lib/toast.ts`. Disappears after 5 s or with its close button.
+ * @prop locale   Profile language (close button label).
+ * @prop message  Optional message to show on load.
+ */
+import Icon from '../ui/Icon.astro';
+import { useTranslations, type Locale } from '../../i18n';
+
+interface Props {
+  locale: Locale;
+  message?: string | undefined;
+}
+
+const { locale, message } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<div class="toaster" role="status" aria-live="polite" data-toaster>
+  <div class="toast" data-toast hidden={!message}>
+    <p data-toast-text>{message}</p>
+    <button class="toast__close" type="button" aria-label={t('app.toastClose')} data-toast-close>
+      <Icon name="x" />
+    </button>
+  </div>
+</div>
+
+<script>
+  import { TOAST_EVENT, type ToastDetail } from '../../lib/toast';
+
+  const toast = document.querySelector<HTMLElement>('[data-toast]');
+  const text = document.querySelector<HTMLElement>('[data-toast-text]');
+  const close = document.querySelector<HTMLButtonElement>('[data-toast-close]');
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  function hide() {
+    if (toast) toast.hidden = true;
+  }
+
+  function show(message: string) {
+    if (!toast || !text) return;
+    text.textContent = message;
+    toast.hidden = false;
+    clearTimeout(timer);
+    timer = setTimeout(hide, 5000);
+  }
+
+  close?.addEventListener('click', hide);
+  window.addEventListener(TOAST_EVENT, (event) => show((event as CustomEvent<ToastDetail>).detail.message));
+  if (toast && !toast.hidden) timer = setTimeout(hide, 5000);
+</script>
+
+<style>
+  .toaster {
+    position: fixed;
+    inset-inline: var(--space-4);
+    top: calc(4rem + var(--space-2));
+    z-index: 30;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .toast {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+    max-width: 26rem;
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+    border-radius: var(--radius-m);
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: var(--shadow-float);
+    pointer-events: auto;
+  }
+
+  .toast[hidden] {
+    display: none;
+  }
+
+  .toast__close {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-btn);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .toast__close :global(svg) {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  @media (min-width: 48rem) {
+    .toaster {
+      inset-inline: auto var(--space-6);
+      top: auto;
+      bottom: var(--space-6);
+    }
+  }
+</style>

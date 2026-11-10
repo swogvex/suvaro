@@ -14,8 +14,8 @@ import Icon from './Icon.astro';
 type Props = HTMLAttributes<'input'> & {
   id: string;
   label: string;
-  hint?: string;
-  error?: string;
+  hint?: string | undefined;
+  error?: string | undefined;
   amount?: boolean;
 };
 

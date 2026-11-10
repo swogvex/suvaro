@@ -1,0 +1,226 @@
+---
+/**
+ * Settings › Security: email status, passkeys (list + add) and open sessions (sign out one, all others,
+ * or this device). Session actions are plain form posts to /api/sessions.
+ */
+import { desc, eq } from 'drizzle-orm';
+import AddPasskey from '../../../components/app/AddPasskey.svelte';
+import Badge from '../../../components/ui/Badge.astro';
+import Button from '../../../components/ui/Button.astro';
+import Card from '../../../components/ui/Card.astro';
+import Icon from '../../../components/ui/Icon.astro';
+import AppLayout from '../../../layouts/AppLayout.astro';
+import { dictionaries, useTranslations, type UiKey } from '../../../i18n';
+import { db } from '../../../lib/db';
+import { passkey, session } from '../../../lib/db/schema';
+import { appPaths } from '../../../lib/routes';
+import { describeUserAgent } from '../../../lib/user-agent';
+
+const { user, session: current, profile } = Astro.locals;
+if (!user || !current || !profile) throw new Error('Signed-in page');
+
+const locale = profile.locale;
+const t = useTranslations(locale);
+const dateTime = new Intl.DateTimeFormat(locale, {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: profile.timezone,
+});
+const date = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: profile.timezone });
+
+const passkeys = await db
+  .select({ id: passkey.id, name: passkey.name, createdAt: passkey.createdAt })
+  .from(passkey)
+  .where(eq(passkey.userId, user.id))
+  .orderBy(desc(passkey.createdAt));
+
+const sessions = (
+  await db
+    .select({ id: session.id, userAgent: session.userAgent, updatedAt: session.updatedAt })
+    .from(session)
+    .where(eq(session.userId, user.id))
+    .orderBy(desc(session.updatedAt))
+)
+  .map((row) => {
+    const device = describeUserAgent(row.userAgent);
+    const label =
+      device.browser && device.os
+        ? t('security.deviceOn', { browser: device.browser, os: device.os })
+        : (device.browser ?? device.os ?? t('security.unknownDevice'));
+    return { ...row, label, mobile: device.mobile, isCurrent: row.id === current.id };
+  })
+  .sort((a, b) => Number(b.isCurrent) - Number(a.isCurrent));
+
+const islandMessages = Object.fromEntries(
+  (Object.keys(dictionaries[locale]) as UiKey[])
+    .filter(
+      (key) =>
+        key.startsWith('signIn.error') || key === 'signIn.noPasskeySupport' || key === 'security.addPasskey',
+    )
+    .map((key) => [key, t(key)]),
+);
+---
+
+<AppLayout title={t('security.title')} section="settings">
+  <h1>{t('security.title')}</h1>
+
+  <Card class="section">
+    <h2 class="section__title">{t('security.emailTitle')}</h2>
+    <div class="row">
+      <span class="row__main">{user.email}</span>
+      {user.emailVerified ? (
+        <Badge tone="positive" icon="check">
+          {t('security.emailVerified')}
+        </Badge>
+      ) : (
+        <a href={appPaths.verifyEmail}>{t('app.verifyBannerAction')}</a>
+      )}
+    </div>
+  </Card>
+
+  <Card class="section">
+    <h2 class="section__title">{t('security.passkeysTitle')}</h2>
+    <p class="section__lead">{t('security.passkeysLead')}</p>
+    {passkeys.length === 0 ? (
+      <p class="section__lead">{t('security.passkeysEmpty')}</p>
+    ) : (
+      <ul class="list">
+        {passkeys.map((row) => (
+          <li class="row">
+            <Icon name="key" />
+            <span class="row__main">
+              <span class="row__name">{row.name || t('security.passkeyUnnamed')}</span>
+              {row.createdAt && (
+                <span class="row__meta">
+                  {t('security.passkeyAdded', { date: date.format(row.createdAt) })}
+                </span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
+    )}
+    <AddPasskey client:visible locale={locale} messages={islandMessages} />
+  </Card>
+
+  <Card class="section">
+    <h2 class="section__title">{t('security.sessionsTitle')}</h2>
+    <p class="section__lead">{t('security.sessionsLead')}</p>
+    <ul class="list" data-sessions>
+      {sessions.map((row) => (
+        <li class="row">
+          <Icon name={row.mobile ? 'smartphone' : 'monitor'} />
+          <span class="row__main">
+            <span class="row__name">
+              {row.label}
+              {row.isCurrent && <Badge tone="accent">{t('security.thisDevice')}</Badge>}
+            </span>
+            <span class="row__meta">
+              {t('security.lastActive', { date: dateTime.format(row.updatedAt) })}
+            </span>
+          </span>
+          {!row.isCurrent && (
+            <form method="post" action="/api/sessions">
+              <input type="hidden" name="action" value="revoke" />
+              <input type="hidden" name="id" value={row.id} />
+              <Button
+                type="submit"
+                variant="ghost"
+                aria-label={t('security.signOutSessionLabel', { device: row.label })}
+              >
+                {t('security.signOutSession')}
+              </Button>
+            </form>
+          )}
+        </li>
+      ))}
+    </ul>
+    <div class="actions">
+      {sessions.length > 1 && (
+        <form method="post" action="/api/sessions">
+          <input type="hidden" name="action" value="revoke-others" />
+          <Button type="submit" variant="secondary">
+            {t('security.signOutOthers')}
+          </Button>
+        </form>
+      )}
+      <form method="post" action="/api/sessions">
+        <input type="hidden" name="action" value="sign-out" />
+        <Button type="submit" variant="danger" icon="log-out">
+          {t('security.signOut')}
+        </Button>
+      </form>
+    </div>
+  </Card>
+</AppLayout>
+
+<style>
+  .section {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .section__title {
+    font-family: var(--font-ui);
+    font-size: 1.0625rem;
+    letter-spacing: 0;
+    line-height: 1.3;
+  }
+
+  .section__lead {
+    color: var(--ink-2);
+  }
+
+  .list {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+    padding-block: var(--space-3);
+  }
+
+  .list .row + .row {
+    border-block-start: 1px solid var(--line);
+  }
+
+  .row > :global(svg) {
+    flex: none;
+    width: 1.375rem;
+    height: 1.375rem;
+    color: var(--ink-2);
+  }
+
+  .row__main {
+    display: grid;
+    flex: 1;
+    gap: var(--space-1);
+    min-width: 12rem;
+    overflow-wrap: anywhere;
+  }
+
+  .row__name {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+    font-weight: 500;
+  }
+
+  .row__meta {
+    color: var(--ink-2);
+    font-size: 0.875rem;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+</style>
