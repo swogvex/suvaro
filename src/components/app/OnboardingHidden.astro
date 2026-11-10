@@ -1,0 +1,33 @@
+---
+/**
+ * Hidden inputs that carry onboarding answers between steps (the wizard keeps no server state).
+ * @prop state  Current answers.
+ * @prop omit   Fields shown as real inputs on this step (not repeated as hidden).
+ */
+import type { OnboardingState } from '../../lib/onboarding';
+
+interface Props {
+  state: OnboardingState;
+  omit?: readonly ('currency' | 'locale' | 'income' | 'repeatIncome' | 'savings' | 'categories')[];
+}
+
+const { state, omit = [] } = Astro.props;
+const keep = (field: (typeof omit)[number]) => !omit.includes(field);
+---
+
+<input type="hidden" name="timezone" value={state.timezone} data-timezone />
+{keep('currency') && <input type="hidden" name="currency" value={state.currency} />}
+{keep('locale') && <input type="hidden" name="locale" value={state.locale} />}
+{keep('income') && <input type="hidden" name="income" value={state.income} />}
+{keep('repeatIncome') && (
+  <input type="hidden" name="repeatIncome" value={state.repeatIncome ? 'on' : 'off'} />
+)}
+{keep('savings') && <input type="hidden" name="savings" value={state.savings} />}
+{keep('categories') && (
+  <>
+    <input type="hidden" name="categoriesSent" value="1" />
+    {state.categories.map((key) => (
+      <input type="hidden" name="categories" value={key} />
+    ))}
+  </>
+)}

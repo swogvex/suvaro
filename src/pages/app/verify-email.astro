@@ -1,0 +1,135 @@
+---
+/**
+ * Confirm the account email (accounts created with a passkey start unconfirmed and are deleted after 72 h).
+ * No client JS: "Send me a code" and "Confirm email" are form posts to this page.
+ */
+import Button from '../../components/ui/Button.astro';
+import Card from '../../components/ui/Card.astro';
+import Field from '../../components/ui/Field.astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+import { useTranslations, type UiKey } from '../../i18n';
+import { getAuth } from '../../lib/auth';
+import { db } from '../../lib/db';
+import { describeError, logError } from '../../lib/errors';
+import { hitRateLimit, VERIFY_EMAIL_SENDS } from '../../lib/rate-limit';
+import { appPaths } from '../../lib/routes';
+
+const { user, profile } = Astro.locals;
+if (!user || !profile) throw new Error('Signed-in page');
+if (user.emailVerified) return Astro.redirect(appPaths.security, 303);
+
+const t = useTranslations(profile.locale);
+let sent = false;
+let error: UiKey | undefined;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = form.get('action');
+  const auth = getAuth();
+
+  if (action === 'send') {
+    const limit = await hitRateLimit(db, `verify-email:${user.id}`, VERIFY_EMAIL_SENDS);
+    if (!limit.allowed) {
+      error = 'verify.errorTooMany';
+    } else {
+      try {
+        await auth.api.sendVerificationOTP({ body: { email: user.email, type: 'email-verification' } });
+        sent = true;
+      } catch (err) {
+        await logError(appPaths.verifyEmail, 'VERIFY_SEND_FAILED', describeError(err));
+        error = 'verify.errorSend';
+      }
+    }
+  } else if (action === 'verify') {
+    const otp = String(form.get('code') ?? '').replace(/\D/g, '');
+    sent = true;
+    try {
+      const result = await auth.api.verifyEmailOTP({
+        body: { email: user.email, otp },
+        headers: Astro.request.headers,
+        returnHeaders: true,
+      });
+      const response = Astro.redirect(`${appPaths.app}?done=email-verified`, 303);
+      for (const cookie of result.headers.getSetCookie()) response.headers.append('Set-Cookie', cookie);
+      return response;
+    } catch {
+      error = 'verify.errorCode';
+    }
+  }
+}
+---
+
+<AppLayout title={t('verify.title')} section="settings">
+  <h1>{t('verify.title')}</h1>
+  <Card class="verify">
+    {error && error !== 'verify.errorCode' && (
+      <p class="verify__error" role="alert">
+        {t(error)}
+      </p>
+    )}
+    {sent ? (
+      <>
+        <p aria-live="polite">{t('verify.sent', { email: user.email })}</p>
+        <form method="post" class="verify__form">
+          <input type="hidden" name="action" value="verify" />
+          <Field
+            id="verify-code"
+            name="code"
+            label={t('verify.code')}
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            pattern="[0-9]{6}"
+            maxlength={6}
+            required
+            class="verify__code"
+            error={error === 'verify.errorCode' ? t(error) : undefined}
+          />
+          <Button type="submit" variant="primary">
+            {t('verify.submit')}
+          </Button>
+        </form>
+        <form method="post">
+          <input type="hidden" name="action" value="send" />
+          <Button type="submit" variant="ghost">
+            {t('signIn.resend')}
+          </Button>
+        </form>
+      </>
+    ) : (
+      <>
+        <p>{t('verify.lead', { email: user.email })}</p>
+        <form method="post">
+          <input type="hidden" name="action" value="send" />
+          <Button type="submit" variant="primary" icon="mail">
+            {t('verify.send')}
+          </Button>
+        </form>
+      </>
+    )}
+  </Card>
+</AppLayout>
+
+<style>
+  .verify {
+    display: grid;
+    gap: var(--space-4);
+    max-width: 32rem;
+    overflow-wrap: anywhere;
+  }
+
+  .verify__form {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+
+  .verify__form :global(.verify__code) {
+    width: 100%;
+    max-width: 14rem;
+  }
+
+  .verify__error {
+    color: var(--negative);
+    font-weight: 500;
+  }
+</style>

@@ -71,6 +71,16 @@ export default defineConfig({
     schema: {
       TURSO_DATABASE_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
       TURSO_AUTH_TOKEN: envField.string({ context: 'server', access: 'secret', optional: true }),
+      BETTER_AUTH_SECRET: envField.string({ context: 'server', access: 'secret', optional: true }),
+      BETTER_AUTH_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
+      RESEND_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      EMAIL_FROM: envField.string({
+        context: 'server',
+        access: 'secret',
+        default: 'Suvaro <no-reply@suvaro.xyz>',
+      }),
+      // Tests only: write emails as JSON files to this folder instead of sending them. Ignored on Vercel.
+      EMAIL_OUTBOX_DIR: envField.string({ context: 'server', access: 'secret', optional: true }),
       PUBLIC_SITE_URL: envField.string({
         context: 'client',
         access: 'public',

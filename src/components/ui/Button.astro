@@ -7,6 +7,7 @@
  * @prop type      Button type when it is a <button> (default "button").
  * @prop icon      Leading icon name.
  * @prop disabled  Disabled state (45 % opacity).
+ * @prop form, name, value  Button form attributes (submit to another form, send a value).
  * @prop class     Extra classes. Other attributes pass through.
  */
 import type { HTMLAttributes } from 'astro/types';
@@ -20,6 +21,9 @@ type Props = Omit<HTMLAttributes<'a'>, 'type'> & {
   type?: 'button' | 'submit' | 'reset';
   icon?: IconName;
   disabled?: boolean;
+  form?: string;
+  name?: string;
+  value?: string;
 };
 
 const {

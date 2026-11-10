@@ -1,0 +1,163 @@
+---
+/**
+ * App header. Desktop (≥ 768 px): symbol + wordmark · section tabs · avatar (→ Settings).
+ * Mobile: page title (wordmark on Home) · avatar. Section tabs live in the Dock on mobile.
+ * @prop locale   Profile language.
+ * @prop section  Active section, for `aria-current`.
+ * @prop title    Page title shown on mobile.
+ * @prop nav      Shows the tabs and the avatar (off during onboarding).
+ */
+import Icon from '../ui/Icon.astro';
+import Logo from '../ui/Logo.astro';
+import { useTranslations, type Locale } from '../../i18n';
+import { appSections, type AppSection } from '../../lib/app-nav';
+import { appPaths } from '../../lib/routes';
+
+interface Props {
+  locale: Locale;
+  section: AppSection | 'settings';
+  title: string;
+  nav?: boolean;
+}
+
+const { locale, section, title, nav = true } = Astro.props;
+const t = useTranslations(locale);
+// Mobile shows the page title, except on Home and during onboarding, where it shows the wordmark.
+const showTitle = nav && section !== 'home';
+---
+
+<header class="app-header">
+  <div class="container app-header__inner">
+    <a
+      class:list={['app-header__brand', !showTitle && 'app-header__brand--always']}
+      href={appPaths.app}
+      aria-label={t('app.homeLabel')}
+    >
+      <Logo />
+    </a>
+    {showTitle && (
+      <p class="app-header__title" aria-hidden="true">
+        {title}
+      </p>
+    )}
+    {nav && (
+      <>
+        <nav class="app-header__nav" aria-label={t('app.navLabel')}>
+          <ul>
+            {appSections.map(({ key, href, label }) => (
+              <li>
+                <a href={href} aria-current={section === key ? 'page' : undefined}>
+                  {t(label)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <a
+          class="app-header__avatar"
+          href={appPaths.settings}
+          aria-label={t('app.settings')}
+          aria-current={section === 'settings' ? 'page' : undefined}
+        >
+          <Icon name="user" />
+        </a>
+      </>
+    )}
+  </div>
+</header>
+
+<style>
+  .app-header__inner {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+    min-height: 4rem;
+  }
+
+  .app-header__brand {
+    display: none;
+    color: var(--ink);
+    text-decoration: none;
+    border-radius: var(--radius-s);
+  }
+
+  .app-header__brand--always {
+    display: block;
+  }
+
+  .app-header__title {
+    overflow: hidden;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: var(--tracking-display);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app-header__nav {
+    display: none;
+  }
+
+  .app-header__nav ul {
+    display: flex;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .app-header__nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: var(--space-4);
+    border-radius: var(--radius-btn);
+    color: var(--ink);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .app-header__nav a:hover {
+    background: var(--surface-2);
+  }
+
+  .app-header__nav a[aria-current='page'] {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .app-header__avatar {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-inline-start: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-btn);
+    background: var(--cat-3);
+    color: var(--cat-ink);
+  }
+
+  .app-header__avatar[aria-current='page'] {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .app-header__avatar :global(svg) {
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+
+  @media (min-width: 48rem) {
+    .app-header__brand,
+    .app-header__nav {
+      display: block;
+    }
+
+    .app-header__title {
+      display: none;
+    }
+  }
+</style>

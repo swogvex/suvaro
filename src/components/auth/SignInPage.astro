@@ -1,0 +1,177 @@
+---
+/**
+ * Sign in / create account page (`/sign-in`, `/es/acceso`). SSR, noindex. The language follows the page.
+ * Split layout: reassurance HeroCard + the sign-in island.
+ * @prop locale  Page language.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import HeroCard from '../ui/HeroCard.astro';
+import Icon from '../ui/Icon.astro';
+import Logo from '../ui/Logo.astro';
+import SignInForm from './SignInForm.svelte';
+import { dictionaries, otherLocale, useTranslations, type Locale, type UiKey } from '../../i18n';
+import type { IconName } from '../../lib/icons';
+import { homePath, legalPath, signInPaths } from '../../lib/routes';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const other = otherLocale(locale);
+const tOther = useTranslations(other);
+const initialMode = Astro.url.searchParams.get('mode') === 'create' ? 'create' : 'sign-in';
+
+const messages = Object.fromEntries(
+  (Object.keys(dictionaries[locale]) as UiKey[])
+    .filter((key) => key.startsWith('signIn.'))
+    .map((key) => [key, t(key)]),
+);
+
+const reassurance: { icon: IconName; text: string }[] = [
+  { icon: 'key', text: t('signIn.heroLine1') },
+  { icon: 'ban', text: t('signIn.heroLine2') },
+  { icon: 'shield', text: t('signIn.heroLine3') },
+];
+const title = initialMode === 'create' ? t('signIn.titleCreate') : t('signIn.title');
+---
+
+<BaseLayout
+  title={`${title} · Suvaro`}
+  description={t('signIn.description')}
+  locale={locale}
+  alternates={signInPaths}
+  noindex
+>
+  <header class="container top">
+    <a class="brand" href={homePath(locale)} aria-label={t('nav.homeLabel')}>
+      <Logo />
+    </a>
+    <a class="lang" href={signInPaths[other]} hreflang={other} lang={other}>
+      {tOther('lang.name')}
+    </a>
+  </header>
+
+  <main id="main" class="container split">
+    <HeroCard as="section" class="intro" aria-labelledby="intro-title">
+      <h1 id="intro-title">{t('signIn.heroTitle')}</h1>
+      <ul class="intro__list">
+        {reassurance.map(({ icon, text }) => (
+          <li>
+            <Icon name={icon} />
+            <span>{text}</span>
+          </li>
+        ))}
+      </ul>
+    </HeroCard>
+
+    <section class="card panel" aria-label={title}>
+      <noscript>
+        <p class="noscript">{t('signIn.noScript')}</p>
+      </noscript>
+      <SignInForm
+        client:load
+        locale={locale}
+        initialMode={initialMode}
+        messages={messages}
+        termsHref={legalPath('terms', locale)}
+        privacyHref={legalPath('privacy', locale)}
+      />
+    </section>
+  </main>
+
+  <footer class="container bottom">
+    <a href={homePath(locale)}>{t('signIn.back')}</a>
+  </footer>
+</BaseLayout>
+
+<style>
+  .top,
+  .bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: var(--space-5);
+  }
+
+  .brand {
+    color: var(--ink);
+    text-decoration: none;
+    border-radius: var(--radius-s);
+  }
+
+  .lang {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: var(--space-3);
+    border-radius: var(--radius-btn);
+    color: var(--ink);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .lang:hover {
+    background: var(--surface-2);
+  }
+
+  .split {
+    display: grid;
+    gap: var(--space-6);
+    align-items: start;
+    padding-block: var(--space-4) var(--space-8);
+  }
+
+  .intro {
+    display: grid;
+    gap: var(--space-5);
+    padding: var(--space-6);
+  }
+
+  .intro__list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .intro__list li {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+  }
+
+  .intro__list :global(svg) {
+    flex: none;
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+
+  .panel {
+    padding: var(--space-6);
+  }
+
+  .noscript {
+    color: var(--ink-2);
+  }
+
+  .bottom {
+    justify-content: center;
+    padding-block-end: var(--space-8);
+  }
+
+  @media (min-width: 52rem) {
+    .split {
+      grid-template-columns: 1fr minmax(0, 28rem);
+      padding-block-start: var(--space-8);
+    }
+
+    .intro {
+      min-height: 100%;
+      align-content: start;
+      padding: var(--space-8);
+    }
+  }
+</style>
