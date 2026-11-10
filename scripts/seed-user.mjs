@@ -59,11 +59,13 @@ const day = (base, n) => {
 };
 const today = iso(new Date());
 const cycleStart = `${today.slice(0, 7)}-01`;
-const previousStart = (() => {
+/** First day of the month `n` months before the current one. */
+const monthsBack = (n) => {
   const d = new Date(`${cycleStart}T00:00:00Z`);
-  d.setUTCMonth(d.getUTCMonth() - 1);
+  d.setUTCMonth(d.getUTCMonth() - n);
   return iso(d);
-})();
+};
+const previousStart = monthsBack(1);
 const daysSoFar = Number(today.slice(8, 10));
 
 const categories = [
@@ -115,7 +117,14 @@ function cycleMovements(start, days, scale) {
 const previousDays = Math.round(
   (new Date(`${cycleStart}T00:00:00Z`) - new Date(`${previousStart}T00:00:00Z`)) / 864e5,
 );
+const daysIn = (start, next) =>
+  Math.round((new Date(`${next}T00:00:00Z`) - new Date(`${start}T00:00:00Z`)) / 864e5);
+// Three older, lighter months, so Stats has trends (current vs the 3-month average) and six months of bars.
+const older = [4, 3, 2].flatMap((n) =>
+  cycleMovements(monthsBack(n), daysIn(monthsBack(n), monthsBack(n - 1)), 0.7),
+);
 const movements = [
+  ...older,
   ...cycleMovements(previousStart, previousDays, 0.92),
   ...cycleMovements(cycleStart, daysSoFar, 1),
 ];

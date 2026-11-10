@@ -1,4 +1,4 @@
-// Lighthouse CI for the signed-in app pages, as a seeded user (scripts/seed-user.mjs) with a month of data.
+// Lighthouse CI for the signed-in app pages, as a seeded user (scripts/seed-user.mjs) with six months of data.
 // Runs after the public pages (`pnpm lhci`); reports go to their own folder so both sets are kept.
 // LHCI loads its config with require(), so this file stays CommonJS.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -24,6 +24,7 @@ module.exports = {
         'http://localhost:4321/app',
         'http://localhost:4321/app/movements',
         'http://localhost:4321/app/movements/calendar',
+        'http://localhost:4321/app/stats',
       ],
       numberOfRuns: 3,
       settings: {
