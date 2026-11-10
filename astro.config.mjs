@@ -33,7 +33,7 @@ export default defineConfig({
       weights: [600],
       styles: ['normal'],
       subsets: ['latin'],
-      fallbacks: ['Arial Black', 'system-ui', 'sans-serif'],
+      fallbacks: ['Suvaro Display Fallback', 'Arial Black', 'system-ui', 'sans-serif'],
     },
     {
       provider: fontProviders.fontsource(),
@@ -42,7 +42,7 @@ export default defineConfig({
       weights: ['400 900'],
       styles: ['normal'],
       subsets: ['latin'],
-      fallbacks: ['system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+      fallbacks: ['Suvaro UI Fallback', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
     },
   ],
 

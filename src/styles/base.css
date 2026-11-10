@@ -7,6 +7,30 @@
   --font-ui: var(--font-gabarito);
 }
 
+/* Metric-matched fallbacks for systems without Arial (Linux, ChromeOS). Astro's generated fallback only
+   tries local("Arial"); Liberation Sans and Arimo share Arial's metrics, so the same overrides apply and
+   the text does not jump when the web font arrives (CLS). Keep in sync with the "fallback: Arial" faces
+   Astro generates (size-adjust / ascent / descent). */
+@font-face {
+  font-family: 'Suvaro Display Fallback';
+  src: local('Liberation Sans'), local('Arimo'), local('Helvetica');
+  font-weight: 600;
+  size-adjust: 140.1972%;
+  ascent-override: 70.9715%;
+  descent-override: 17.4754%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Suvaro UI Fallback';
+  src: local('Liberation Sans'), local('Arimo'), local('Helvetica');
+  font-weight: 400 900;
+  size-adjust: 99.1474%;
+  ascent-override: 94.8083%;
+  descent-override: 26.2236%;
+  line-gap-override: 0%;
+}
+
 *,
 *::before,
 *::after {
