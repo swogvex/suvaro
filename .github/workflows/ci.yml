@@ -64,4 +64,6 @@ jobs:
           path: |
             playwright-report/
             .lighthouseci/
+          # .lighthouseci is a dot-folder; without this the Lighthouse reports are silently skipped.
+          include-hidden-files: true
           retention-days: 14
