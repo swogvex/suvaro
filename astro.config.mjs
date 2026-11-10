@@ -3,6 +3,7 @@ import { defineConfig, envField, fontProviders } from 'astro/config';
 import node from '@astrojs/node';
 import svelte from '@astrojs/svelte';
 import vercel from '@astrojs/vercel';
+import { themeInitScriptHash } from './src/lib/theme-csp.ts';
 
 // CI and local e2e run a plain Node server; Vercel builds use the Vercel adapter.
 const adapter =
@@ -59,7 +60,9 @@ export default defineConfig({
         "object-src 'none'",
         "frame-ancestors 'none'",
       ],
-      scriptDirective: { resources: ["'self'"] },
+      // The inline theme script runs before first paint on every page; its hash is allowed globally
+      // (Astro.csp.insertScriptHash does not reach the static headers of prerendered pages).
+      scriptDirective: { resources: ["'self'"], hashes: [themeInitScriptHash] },
       styleDirective: { resources: ["'self'"] },
     },
   },
