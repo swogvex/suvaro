@@ -112,7 +112,7 @@ const structuredData = {
     </HeroCard>
   </section>
 
-  <section id="faq" class="section container" aria-labelledby="faq-title">
+  <section id="faq" class="section section--narrow container" aria-labelledby="faq-title">
     <h2 id="faq-title">{t('landing.faqTitle')}</h2>
     <div class="faq">
       {faqs.map(({ id, question, Content }) => (
@@ -259,6 +259,11 @@ const structuredData = {
     flex: none;
     width: 1.375rem;
     height: 1.375rem;
+  }
+
+  /* Questions read better in a shorter, centered column than across the whole page. */
+  .section--narrow {
+    max-width: 48rem;
   }
 
   .faq {
