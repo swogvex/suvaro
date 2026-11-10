@@ -1,9 +1,9 @@
 name: CI
 
+# Runs once per pull request (the required check before merging). No second run on main after the
+# squash merge: branch protection only accepts changes through a PR whose head already passed this check.
 on:
   pull_request:
-  push:
-    branches: [main]
 
 permissions:
   contents: read
