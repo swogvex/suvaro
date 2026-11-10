@@ -1,11 +1,40 @@
 ---
-import ComingSoon from '../../components/app/ComingSoon.astro';
+/**
+ * Stats (`/app/stats`): where the money goes in a week, cycle, year or custom range. The period in the query
+ * (`period`, `date`, `from`, `to`; the current cycle when absent or invalid) is loaded on the server, so the
+ * first paint already has the numbers.
+ */
+import StatsDashboard from '../../components/stats/StatsDashboard.svelte';
 import AppLayout from '../../layouts/AppLayout.astro';
-import { useTranslations } from '../../i18n';
+import { pickMessages, useTranslations } from '../../i18n';
+import { db } from '../../lib/db';
+import { movementsContext } from '../../lib/movements/page';
+import { choosePeriod } from '../../lib/stats/period';
+import { loadStats } from '../../lib/stats/repo';
 
-const t = useTranslations(Astro.locals.profile?.locale);
+const { user, profile } = Astro.locals;
+if (!user || !profile) throw new Error('Signed-in page');
+const context = await movementsContext(Astro.locals);
+const t = useTranslations(context.locale);
+const settings = { startDay: profile.cycleStartDay, weekStart: context.weekStart };
+const choice =
+  choosePeriod(Astro.url.searchParams, settings, context.today) ??
+  choosePeriod(new URLSearchParams(), settings, context.today);
+if (!choice) throw new Error('The current cycle is always valid');
+const initial = await loadStats(db, user.id, choice, settings, context.today);
+const messages = pickMessages(context.locale, ['stats.', 'app.stats', 'movements.noCategory']);
 ---
 
 <AppLayout title={t('app.stats')} section="stats">
-  <ComingSoon title={t('app.stats')} text={t('app.soonStats')} icon="chart" />
+  <StatsDashboard
+    client:load
+    initial={initial}
+    today={context.today}
+    startDay={profile.cycleStartDay}
+    weekStart={context.weekStart}
+    categories={context.categories}
+    locale={context.locale}
+    currency={context.currency}
+    messages={messages}
+  />
 </AppLayout>

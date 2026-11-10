@@ -71,6 +71,10 @@ export const icons = {
   user: '<circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/>',
   'wifi-off':
     '<path d="M12 20h.01"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M2 8.8a15 15 0 0 1 4.2-2.6"/><path d="M10.7 5c4-.4 8.1.9 11.3 3.8"/><path d="M16.9 11.3a10 10 0 0 1 2.2 1.6"/><path d="M5 13a10 10 0 0 1 5.2-2.8"/><path d="m2 2 20 20"/>',
+  printer:
+    '<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/>',
+  sheet:
+    '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 9v12"/><path d="M15 9v12"/>',
 } as const satisfies Record<string, string>;
 
 export type IconName = keyof typeof icons;
