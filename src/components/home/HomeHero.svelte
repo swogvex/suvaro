@@ -236,6 +236,17 @@
     background: var(--surface);
   }
 
+  /* Dark mode: --surface is almost the hero color, so "left" uses a light neutral that stands out. */
+  :global(:root[data-mode='dark']) .hero__key--free {
+    background: var(--ink-3);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-mode='light'])) .hero__key--free {
+      background: var(--ink-3);
+    }
+  }
+
   .hero__empty {
     display: grid;
     justify-items: start;

@@ -56,4 +56,15 @@
   .bar__free {
     fill: var(--surface);
   }
+
+  /* Dark mode: --surface is almost the hero color, so "left" uses a light neutral that stands out. */
+  :global(:root[data-mode='dark']) .bar__free {
+    fill: var(--ink-3);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-mode='light'])) .bar__free {
+      fill: var(--ink-3);
+    }
+  }
 </style>
