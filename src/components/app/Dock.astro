@@ -7,6 +7,7 @@
  * @prop section  Active section, for `aria-current`.
  */
 import Icon from '../ui/Icon.astro';
+import ThemeToggle from './ThemeToggle.astro';
 import { useTranslations, type Locale } from '../../i18n';
 import { appSections, type AppSection } from '../../lib/app-nav';
 
@@ -39,47 +40,10 @@ const t = useTranslations(locale);
     <Icon name="plus" />
   </button>
   <span class="dock__sep" aria-hidden="true"></span>
-  <button
-    class="dock__item"
-    type="button"
-    data-theme-toggle
-    data-label-dark={t('app.themeToDark')}
-    data-label-light={t('app.themeToLight')}
-    aria-label={t('app.themeToDark')}
-    hidden
-  >
-    <Icon name="moon" class="dock__moon" />
-    <Icon name="sun" class="dock__sun" />
-  </button>
+  <ThemeToggle locale={locale} class="dock__item" />
 </nav>
 
 <script>
-  import { MODE_STORAGE_KEY } from '../../lib/theme';
-
-  const root = document.documentElement;
-
-  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')) {
-    const sync = () => {
-      const dark = root.dataset['mode'] === 'dark';
-      button.setAttribute(
-        'aria-label',
-        (dark ? button.dataset['labelLight'] : button.dataset['labelDark']) ?? '',
-      );
-    };
-    button.addEventListener('click', () => {
-      const next = root.dataset['mode'] === 'dark' ? 'light' : 'dark';
-      root.dataset['mode'] = next;
-      try {
-        localStorage.setItem(MODE_STORAGE_KEY, next);
-      } catch {
-        // Storage blocked: the choice applies to this page only.
-      }
-      sync();
-    });
-    sync();
-    button.hidden = false;
-  }
-
   // Hide the dock while the on-screen keyboard takes part of the viewport.
   const dock = document.querySelector<HTMLElement>('[data-dock]');
   const viewport = window.visualViewport;
@@ -123,7 +87,8 @@ const t = useTranslations(locale);
     list-style: none;
   }
 
-  .dock__item {
+  /* :global so the theme toggle (its own component) gets the same look. */
+  .dock :global(.dock__item) {
     display: inline-grid;
     place-items: center;
     width: 3rem;
@@ -136,27 +101,23 @@ const t = useTranslations(locale);
     cursor: pointer;
   }
 
-  .dock__item[hidden] {
-    display: none;
-  }
-
-  .dock__item:hover {
+  .dock :global(.dock__item:hover) {
     background: var(--surface-2);
   }
 
-  .dock__item[aria-current='page'] {
+  .dock :global(.dock__item[aria-current='page']) {
     background: var(--surface-2);
     box-shadow: inset 0 0 0 1px var(--line);
     color: var(--accent);
   }
 
-  .dock__item :global(svg) {
+  .dock :global(.dock__item svg) {
     width: 1.5rem;
     height: 1.5rem;
   }
 
-  .dock__new,
-  .dock__new:hover {
+  .dock .dock__new,
+  .dock .dock__new:hover {
     background: var(--accent);
     color: var(--on-accent);
     box-shadow: 0 2px 0 var(--accent-strong);
@@ -167,11 +128,6 @@ const t = useTranslations(locale);
     width: 1px;
     margin-block: var(--space-2);
     background: var(--line);
-  }
-
-  :global([data-mode='dark']) .dock__item :global(.dock__moon),
-  :global(:root:not([data-mode='dark'])) .dock__item :global(.dock__sun) {
-    display: none;
   }
 
   @media (min-width: 48rem) {

@@ -40,7 +40,7 @@ const ogImage = new URL(`/og/og-${locale}.png`, site).href;
 <html lang={locale}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     {/* Sets data-mode/data-accent before first paint; allowed by its hash in astro.config.mjs. */}
     <script is:inline set:html={themeInitScript} />
     <title>{title}</title>

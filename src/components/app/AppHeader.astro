@@ -1,6 +1,7 @@
 ---
 /**
  * App header. Desktop (≥ 768 px): symbol + wordmark · section tabs · avatar (→ Settings).
+ * Desktop also has the light/dark toggle (on phones it lives in the dock).
  * Mobile: page title (wordmark on Home) · avatar. Section tabs live in the Dock on mobile.
  * @prop locale   Profile language.
  * @prop section  Active section, for `aria-current`.
@@ -9,6 +10,7 @@
  */
 import Icon from '../ui/Icon.astro';
 import Logo from '../ui/Logo.astro';
+import ThemeToggle from './ThemeToggle.astro';
 import { useTranslations, type Locale } from '../../i18n';
 import { appSections, type AppSection } from '../../lib/app-nav';
 import { appPaths } from '../../lib/routes';
@@ -68,6 +70,7 @@ const showTitle = nav && section !== 'home';
             <Icon name="plus" />
             {t('app.new')}
           </button>
+          <ThemeToggle locale={locale} class="icon-btn app-header__theme" />
         </div>
         <a
           class="app-header__avatar"
@@ -157,7 +160,8 @@ const showTitle = nav && section !== 'home';
   }
 
   .app-header__keys,
-  .app-header__new {
+  .app-header__new,
+  .app-header__actions :global(.app-header__theme) {
     display: none;
   }
 
@@ -223,6 +227,15 @@ const showTitle = nav && section !== 'home';
 
     .app-header__new {
       display: inline-flex;
+    }
+
+    .app-header__actions :global(.app-header__theme:not([hidden])) {
+      display: inline-grid;
+    }
+
+    /* Desktop: breathing room above the header. */
+    .app-header {
+      padding-block-start: var(--space-6);
     }
   }
 

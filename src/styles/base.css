@@ -37,9 +37,14 @@
   box-sizing: border-box;
 }
 
+/* The dotted ground also on <html>, so it shows behind iOS Safari's see-through toolbars and the
+   overscroll areas (viewport-fit=cover lets the page draw edge to edge). */
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--dot) 1.3px, transparent 1.6px);
+  background-size: 20px 20px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -50,6 +55,9 @@ html {
 
 body {
   margin: 0;
+  /* Keep content out of the notch / home indicator areas (zero in portrait Safari). */
+  padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
+  padding-block-start: env(safe-area-inset-top, 0px);
   min-height: 100dvh;
   font-size: 1rem;
   line-height: 1.45;
