@@ -1,5 +1,6 @@
 import { en, type UiKey } from './en';
 import { es } from './es';
+import { interpolate } from './interpolate';
 
 export const locales = ['en', 'es'] as const;
 export type Locale = (typeof locales)[number];
@@ -18,10 +19,7 @@ export function otherLocale(locale: Locale): Locale {
   return locale === 'en' ? 'es' : 'en';
 }
 
-/** Replaces `{name}` placeholders; unknown placeholders are left as they are. */
-export function interpolate(text: string, vars: Record<string, string | number>): string {
-  return text.replace(/\{(\w+)\}/g, (match, name: string) => (name in vars ? String(vars[name]) : match));
-}
+export { interpolate };
 
 /** Returns the translator for a locale; unknown locales fall back to English. */
 export function useTranslations(locale: string | undefined) {
@@ -36,6 +34,16 @@ export function formatDate(date: Date, locale: Locale): string {
     dateStyle: 'long',
     timeZone: 'UTC',
   }).format(date);
+}
+
+/** The strings an island needs (keys starting with one of `prefixes`), so islands never ship whole dictionaries. */
+export function pickMessages(locale: Locale, prefixes: readonly string[]): Partial<Record<UiKey, string>> {
+  const dict = dictionaries[locale];
+  return Object.fromEntries(
+    (Object.keys(dict) as UiKey[])
+      .filter((key) => prefixes.some((prefix) => key.startsWith(prefix)))
+      .map((key) => [key, dict[key]]),
+  );
 }
 
 export type { UiKey };

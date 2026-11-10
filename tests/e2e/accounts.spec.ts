@@ -25,6 +25,7 @@ test.describe('guarded routes', () => {
     '/app',
     '/app/welcome',
     '/app/movements',
+    '/app/movements/calendar',
     '/app/stats',
     '/app/plan',
     '/app/settings',

@@ -22,6 +22,8 @@ export async function expectNoAxeViolations(page: Page) {
 
 /** Runs axe in the 6 theme combinations on the page that is already open. */
 export async function expectNoAxeViolationsInThemes(page: Page) {
+  // No color transitions: axe must not measure a button halfway between two themes.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   for (const { mode, accent } of themes) {
     await page.evaluate(([m, a]) => Object.assign(document.documentElement.dataset, { mode: m, accent: a }), [
       mode,

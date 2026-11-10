@@ -1,7 +1,7 @@
 ---
 /**
  * Mobile floating dock (< 768 px): fixed, centered, above Safari's bottom toolbar (safe-area inset + 12 px).
- * Items 48×48: Home · Movements · Stats · Plan | theme toggle. The "+" (new movement) arrives with movements.
+ * Items 48×48: Home · Movements · Stats · Plan | + (new movement) | theme toggle.
  * Hidden while the on-screen keyboard is open.
  * @prop locale   Profile language.
  * @prop section  Active section, for `aria-current`.
@@ -34,6 +34,10 @@ const t = useTranslations(locale);
       </li>
     ))}
   </ul>
+  <span class="dock__sep" aria-hidden="true"></span>
+  <button class="dock__item dock__new" type="button" aria-label={t('app.shortcutNew')} data-open-editor>
+    <Icon name="plus" />
+  </button>
   <span class="dock__sep" aria-hidden="true"></span>
   <button
     class="dock__item"
@@ -149,6 +153,13 @@ const t = useTranslations(locale);
   .dock__item :global(svg) {
     width: 1.5rem;
     height: 1.5rem;
+  }
+
+  .dock__new,
+  .dock__new:hover {
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 2px 0 var(--accent-strong);
   }
 
   .dock__sep {

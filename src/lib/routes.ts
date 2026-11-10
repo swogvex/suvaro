@@ -60,6 +60,7 @@ export const appPaths = {
   app: '/app',
   welcome: '/app/welcome',
   movements: '/app/movements',
+  calendar: '/app/movements/calendar',
   stats: '/app/stats',
   plan: '/app/plan',
   settings: '/app/settings',

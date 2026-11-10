@@ -1,0 +1,58 @@
+---
+/**
+ * Movements page heading + the List · Calendar switch (links that keep the current filters).
+ * Recurring joins as a third view when recurring movements can be managed.
+ * @prop view   Current view.
+ * @prop query  Filter query to keep in the links (no leading "?").
+ */
+import { useTranslations } from '../../i18n';
+import { appPaths } from '../../lib/routes';
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  view: 'list' | 'calendar';
+  query: string;
+}
+
+const { view, query } = Astro.props;
+const t = useTranslations(Astro.locals.profile?.locale);
+const suffix = query ? `?${query}` : '';
+const views = [
+  { key: 'list', href: `${appPaths.movements}${suffix}`, label: t('movements.list'), icon: 'list' },
+  {
+    key: 'calendar',
+    href: `${appPaths.calendar}${suffix}`,
+    label: t('movements.calendar'),
+    icon: 'calendar',
+  },
+] as const;
+---
+
+<div class="head">
+  <h1>{t('app.movements')}</h1>
+  <nav aria-label={t('movements.views')}>
+    <div class="segmented">
+      {views.map(({ key, href, label, icon }) => (
+        <a
+          class="segmented__item"
+          href={href}
+          aria-current={view === key ? 'page' : undefined}
+          data-view-link
+        >
+          <Icon name={icon} />
+          {label}
+        </a>
+      ))}
+    </div>
+  </nav>
+</div>
+
+<style>
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-4);
+    align-items: center;
+    justify-content: space-between;
+  }
+</style>

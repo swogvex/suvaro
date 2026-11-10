@@ -104,6 +104,11 @@
   background: var(--surface-2);
 }
 
+.icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* ---------- Chip ---------- */
 .chip {
   display: inline-flex;
@@ -143,6 +148,42 @@
 }
 
 .chip__remove svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Chip as a radio or checkbox: the input fills the chip, invisible; the chip shows the state. */
+.chip:has(> input) {
+  position: relative;
+}
+
+.chip > input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.chip:has(> input:checked) {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.chip:has(> input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.chip .cat-tile {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-inline-start: calc(var(--space-2) * -1);
+  border-radius: var(--radius-xs);
+}
+
+.chip .cat-tile svg {
   width: 1rem;
   height: 1rem;
 }
@@ -199,6 +240,70 @@
 .segmented__item svg {
   width: 1.125rem;
   height: 1.125rem;
+}
+
+/* Segmented as navigation links (List · Calendar): the current page is the active item. */
+a.segmented__item {
+  text-decoration: none;
+}
+
+a.segmented__item[aria-current='page'] {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+/* ---------- Kbd ---------- */
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  min-width: 1.5rem;
+  padding: 0 var(--space-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xs);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.6;
+  justify-content: center;
+}
+
+/* ---------- Switch (checkbox with role="switch") ---------- */
+.switch {
+  position: relative;
+  flex: none;
+  width: 2.75rem;
+  height: 1.5rem;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+  cursor: pointer;
+  appearance: none;
+  transition: background-color var(--dur) var(--ease);
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  inset-block: 2px;
+  inset-inline-start: 2px;
+  width: 1.125rem;
+  border-radius: var(--radius-xs);
+  background: var(--ink-3);
+  transition: transform var(--dur) var(--ease);
+}
+
+.switch:checked {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.switch:checked::after {
+  background: var(--on-accent);
+  transform: translateX(1.125rem);
 }
 
 /* ---------- Field ---------- */

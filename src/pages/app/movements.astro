@@ -1,11 +1,42 @@
 ---
-import ComingSoon from '../../components/app/ComingSoon.astro';
+/**
+ * Movements · List (`/app/movements`). Filters live in the URL query, so a filtered view can be bookmarked
+ * and survives reload. The first month is rendered on the server; the island loads older months.
+ */
+import MovementList from '../../components/movements/MovementList.svelte';
+import MovementsHead from '../../components/movements/MovementsHead.astro';
 import AppLayout from '../../layouts/AppLayout.astro';
-import { useTranslations } from '../../i18n';
+import { pickMessages, useTranslations } from '../../i18n';
+import { db } from '../../lib/db';
+import { filtersToParams, parseFilters } from '../../lib/movements/filters';
+import { movementsContext } from '../../lib/movements/page';
+import { latestMonth, listMonth, summarize } from '../../lib/movements/repo';
 
-const t = useTranslations(Astro.locals.profile?.locale);
+const { user } = Astro.locals;
+if (!user) throw new Error('Signed-in page');
+const context = await movementsContext(Astro.locals);
+const t = useTranslations(context.locale);
+const { filters } = parseFilters(Astro.url.searchParams);
+const [start, summary] = await Promise.all([
+  latestMonth(db, user.id, filters, context.today),
+  summarize(db, user.id, filters, context.today),
+]);
+const page = start
+  ? await listMonth(db, user.id, filters, context.today, start)
+  : { month: null, items: [], next: null };
+const messages = pickMessages(context.locale, ['movements.', 'filters.', 'editor.income', 'editor.expense']);
 ---
 
 <AppLayout title={t('app.movements')} section="movements">
-  <ComingSoon title={t('app.movements')} text={t('app.soonMovements')} icon="list" />
+  <MovementsHead view="list" query={filtersToParams(filters).toString()} />
+  <MovementList
+    client:load
+    initial={{ ...page, summary }}
+    filters={filters}
+    categories={context.categories}
+    locale={context.locale}
+    currency={context.currency}
+    today={context.today}
+    messages={messages}
+  />
 </AppLayout>

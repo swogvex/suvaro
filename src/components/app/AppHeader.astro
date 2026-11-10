@@ -53,6 +53,22 @@ const showTitle = nav && section !== 'home';
             ))}
           </ul>
         </nav>
+        <div class="app-header__actions">
+          <button class="btn btn--secondary app-header__search" type="button" data-open-search>
+            <Icon name="search" />
+            <span class="app-header__search-label">{t('app.search')}</span>
+            <span class="app-header__keys" aria-hidden="true">
+              <kbd class="kbd" data-mod-key>
+                Ctrl
+              </kbd>
+              <kbd class="kbd">K</kbd>
+            </span>
+          </button>
+          <button class="btn btn--primary app-header__new" type="button" data-open-editor>
+            <Icon name="plus" />
+            {t('app.new')}
+          </button>
+        </div>
         <a
           class="app-header__avatar"
           href={appPaths.settings}
@@ -127,13 +143,44 @@ const showTitle = nav && section !== 'home';
     color: var(--bg);
   }
 
+  .app-header__actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    margin-inline-start: auto;
+  }
+
+  /* Phones: search is an icon button; "New" lives in the dock. */
+  .app-header__search {
+    width: 2.75rem;
+    padding: 0;
+  }
+
+  .app-header__keys,
+  .app-header__new {
+    display: none;
+  }
+
+  /* The label stays for screen readers on phones, where only the icon shows. */
+  .app-header__search-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .app-header__keys {
+    gap: 2px;
+  }
+
   .app-header__avatar {
     display: inline-grid;
     flex: none;
     place-items: center;
     width: 2.75rem;
     height: 2.75rem;
-    margin-inline-start: auto;
     border: 1px solid var(--line);
     border-radius: var(--radius-btn);
     background: var(--cat-3);
@@ -158,6 +205,30 @@ const showTitle = nav && section !== 'home';
 
     .app-header__title {
       display: none;
+    }
+
+    .app-header__search {
+      width: auto;
+      padding: 0 var(--space-3);
+      color: var(--ink-2);
+    }
+
+    .app-header__search-label {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip-path: none;
+    }
+
+    .app-header__new {
+      display: inline-flex;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .app-header__keys {
+      display: inline-flex;
     }
   }
 </style>
