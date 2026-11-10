@@ -19,7 +19,10 @@ export default defineConfig({
   // Production build with the Node adapter (same server CI and Lighthouse use), on the migrated local
   // database. Emails go to files in EMAIL_OUTBOX_DIR so tests can read sign-in codes.
   webServer: {
-    command: 'pnpm db:migrate && pnpm build:node && pnpm start:node',
+    // The seeded users (Home with a full month) are written before the server starts: a second writer on
+    // the SQLite file during the run would make the server's own writes fail.
+    command:
+      'pnpm db:migrate && node scripts/seed-user.mjs e2e-mobile && node scripts/seed-user.mjs e2e-desktop && pnpm build:node && pnpm start:node',
     url: `http://localhost:${PORT}`,
     reuseExistingServer: false,
     timeout: 240_000,

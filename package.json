@@ -20,7 +20,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "lhci": "lhci autorun",
+    "lhci": "lhci autorun && lhci autorun --config=lighthouserc.app.cjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
   },
