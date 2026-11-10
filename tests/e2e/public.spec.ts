@@ -1,4 +1,4 @@
-import AxeBuilder from '@axe-core/playwright';
+import { expectNoAxeViolations } from './helpers';
 import { expect, test, type Page } from '@playwright/test';
 
 const pages = [
@@ -22,13 +22,6 @@ function collectErrors(page: Page): string[] {
   page.on('console', (msg) => msg.type() === 'error' && errors.push(msg.text()));
   page.on('pageerror', (err) => errors.push(err.message));
   return errors;
-}
-
-async function expectNoAxeViolations(page: Page) {
-  const { violations } = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
-    .analyze();
-  expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((n) => n.target) }))).toEqual([]);
 }
 
 for (const { path, lang, heading } of pages) {

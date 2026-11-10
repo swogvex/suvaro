@@ -73,15 +73,19 @@ const parts = [
 </figure>
 
 <style>
+  /* Two cards laid on the table: the big one tilted more, the budget one tilted a little and overlapping
+     its lower right corner. Static transforms (no motion), so reduced motion needs nothing special. */
   .sample {
     display: grid;
-    gap: var(--space-4);
     margin: 0;
+    padding-block: var(--space-4);
   }
 
   .sample__hero {
     display: grid;
     gap: var(--space-4);
+    padding-block-end: var(--space-8);
+    transform: rotate(-3deg);
   }
 
   .sample__head,
@@ -142,13 +146,36 @@ const parts = [
     background: var(--surface);
   }
 
+  /* Dark mode: --surface is almost the hero color, so "left" uses a light neutral that stands out. */
+  :global(:root[data-mode='dark']) .sample__key--free {
+    background: var(--ink-3);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-mode='light'])) .sample__key--free {
+      background: var(--ink-3);
+    }
+  }
+
   .sample__daily {
     font-weight: 500;
   }
 
   .sample__budget {
+    position: relative;
+    z-index: 1;
     display: grid;
     gap: var(--space-3);
+    margin-block-start: calc(var(--space-6) * -1);
+    margin-inline-start: 6%;
+    box-shadow: var(--shadow-float);
+    transform: rotate(1.5deg);
+  }
+
+  @media (min-width: 40rem) {
+    .sample__budget {
+      margin-inline-start: 20%;
+    }
   }
 
   .sample__budget-text {
