@@ -1,0 +1,61 @@
+---
+/**
+ * One legal page (notice, privacy, cookies, terms, credits) rendered from `src/content/legal`.
+ * @prop locale  Page language.
+ * @prop key     Which legal page.
+ */
+import { getEntry } from 'astro:content';
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import { formatDate, useTranslations, type Locale } from '../../i18n';
+import { wrapTables } from '../../lib/html';
+import { homePath, legalAlternates, legalSlugs, type LegalKey } from '../../lib/routes';
+
+interface Props {
+  locale: Locale;
+  key: LegalKey;
+}
+
+const { locale, key } = Astro.props;
+const t = useTranslations(locale);
+const entry = await getEntry('legal', `${locale}/${legalSlugs[key][locale]}`);
+if (!entry) throw new Error(`Missing legal content ${locale}/${key}`);
+const html = wrapTables(entry.rendered?.html ?? '');
+const { title, description, updated } = entry.data;
+---
+
+<PublicLayout
+  title={`${title} · Suvaro`}
+  description={description}
+  locale={locale}
+  alternates={legalAlternates(key)}
+>
+  <article class="legal container">
+    <header class="legal__header">
+      <h1>{title}</h1>
+      <p class="legal__updated">{t('legal.updated', { date: formatDate(updated, locale) })}</p>
+    </header>
+    <div class="prose" set:html={html} />
+    <p>
+      <a href={homePath(locale)}>{t('legal.back')}</a>
+    </p>
+  </article>
+</PublicLayout>
+
+<style>
+  .legal {
+    display: grid;
+    gap: var(--space-8);
+    max-width: calc(46rem + 2 * var(--space-4));
+    padding-block: var(--space-8) var(--space-4);
+  }
+
+  .legal__header {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .legal__updated {
+    color: var(--ink-2);
+    font-size: 0.875rem;
+  }
+</style>

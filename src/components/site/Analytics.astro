@@ -1,0 +1,15 @@
+---
+/**
+ * Vercel Web Analytics and Speed Insights: cookieless, served from our own origin under /_vercel/
+ * (so the CSP stays 'self' and no package is needed). Only on Vercel builds: elsewhere those paths
+ * do not exist and would log 404 errors. The owner enables both in the Vercel dashboard.
+ */
+const enabled = import.meta.env.PROD && process.env['VERCEL'] === '1';
+---
+
+{enabled && (
+  <>
+    <script is:inline defer src="/_vercel/insights/script.js" />
+    <script is:inline defer src="/_vercel/speed-insights/script.js" />
+  </>
+)}

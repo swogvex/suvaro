@@ -3,7 +3,13 @@
     "collect": {
       "startServerCommand": "pnpm start:node",
       "startServerReadyPattern": "Server listening",
-      "url": ["http://localhost:4321/", "http://localhost:4321/es"],
+      "url": [
+        "http://localhost:4321/",
+        "http://localhost:4321/es",
+        "http://localhost:4321/legal/privacy",
+        "http://localhost:4321/es/legal/privacidad",
+        "http://localhost:4321/legal/credits"
+      ],
       "numberOfRuns": 3,
       "settings": { "chromeFlags": "--headless=new --no-sandbox" }
     },

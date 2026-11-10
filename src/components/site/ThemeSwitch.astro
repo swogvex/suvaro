@@ -1,0 +1,75 @@
+---
+/**
+ * Light / dark / auto switch for logged-out pages. Saved in localStorage (a preference, no cookie).
+ * Hidden until its script runs, so it never shows a control that cannot work without JS.
+ * @prop locale  Page language.
+ */
+import Segmented from '../ui/Segmented.astro';
+import { useTranslations, type Locale } from '../../i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const t = useTranslations(Astro.props.locale);
+const options = [
+  { value: 'system', label: t('theme.system'), icon: 'monitor' },
+  { value: 'light', label: t('theme.light'), icon: 'sun' },
+  { value: 'dark', label: t('theme.dark'), icon: 'moon' },
+] as const;
+---
+
+<Segmented
+  legend={t('theme.label')}
+  name="theme-mode"
+  options={options}
+  value="system"
+  data-theme-switch
+  hidden
+/>
+
+<script>
+  import { MODE_STORAGE_KEY, parseMode, resolveMode, type Mode } from '../../lib/theme';
+
+  const root = document.documentElement;
+  const darkQuery = matchMedia('(prefers-color-scheme: dark)');
+
+  function storedMode(): Mode {
+    try {
+      return parseMode(localStorage.getItem(MODE_STORAGE_KEY));
+    } catch {
+      return 'system';
+    }
+  }
+
+  function applyMode(mode: Mode): void {
+    root.dataset['mode'] = resolveMode(mode, darkQuery.matches);
+    root.dataset['accent'] = 'blue';
+  }
+
+  function saveMode(mode: Mode): void {
+    try {
+      if (mode === 'system') localStorage.removeItem(MODE_STORAGE_KEY);
+      else localStorage.setItem(MODE_STORAGE_KEY, mode);
+    } catch {
+      // Storage blocked (private mode): the choice still applies to this page.
+    }
+  }
+
+  for (const group of document.querySelectorAll<HTMLFieldSetElement>('[data-theme-switch]')) {
+    const current = storedMode();
+    for (const input of group.querySelectorAll<HTMLInputElement>('input[type="radio"]')) {
+      input.checked = input.value === current;
+    }
+    group.addEventListener('change', (event) => {
+      const mode = parseMode((event.target as HTMLInputElement).value);
+      saveMode(mode);
+      applyMode(mode);
+    });
+    group.hidden = false;
+  }
+
+  darkQuery.addEventListener('change', () => {
+    if (storedMode() === 'system') applyMode('system');
+  });
+</script>

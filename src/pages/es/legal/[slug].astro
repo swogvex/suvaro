@@ -1,0 +1,17 @@
+---
+import type { GetStaticPaths } from 'astro';
+import LegalPage from '../../../components/site/LegalPage.astro';
+import { legalKeys, legalSlugs, type LegalKey } from '../../../lib/routes';
+
+export const prerender = true;
+
+export const getStaticPaths = (() =>
+  legalKeys.map((key) => ({
+    params: { slug: legalSlugs[key].es },
+    props: { key },
+  }))) satisfies GetStaticPaths;
+
+const { key } = Astro.props as { key: LegalKey };
+---
+
+<LegalPage locale="es" key={key} />

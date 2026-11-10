@@ -2,3 +2,5 @@ User-agent: *
 Disallow: /app
 Disallow: /api
 Disallow: /demo
+
+Sitemap: https://suvaro.xyz/sitemap.xml

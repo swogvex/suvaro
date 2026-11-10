@@ -80,6 +80,61 @@ a {
   padding-inline: var(--space-4);
 }
 
+/* Long-form Markdown (legal pages, FAQ answers). */
+.prose {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.prose h2 {
+  margin-block-start: var(--space-4);
+  font-size: 1.375rem;
+  line-height: 1.1;
+}
+
+.prose ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+}
+
+.prose ul,
+.prose .table-scroll {
+  max-width: 65ch;
+}
+
+.prose code {
+  font-size: 0.9em;
+}
+
+/* Tables scroll inside their own box on narrow screens (see src/lib/html.ts). */
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-s);
+}
+
+.prose table {
+  width: 100%;
+  min-width: 34rem;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.prose th,
+.prose td {
+  padding: var(--space-2);
+  border-block-end: 1px solid var(--line);
+  text-align: start;
+  vertical-align: top;
+}
+
+.prose th {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
 .skip-link {
   position: absolute;
   inset-block-start: var(--space-2);
