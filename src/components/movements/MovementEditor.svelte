@@ -99,7 +99,7 @@
       note = movement.note;
       setDate(movement.date);
     } else {
-      type = 'expense';
+      type = request.type ?? 'expense';
       amountText = '';
       categoryId = null;
       note = '';

@@ -80,6 +80,11 @@ export function addDays(date: string, days: number): string {
   return fromUtc(value);
 }
 
+/** Whole days from `from` to `to`: ("2026-11-08", "2026-11-10") → 2; negative when `to` is earlier. */
+export function daysBetween(from: string, to: string): number {
+  return Math.round((toUtc(to).getTime() - toUtc(from).getTime()) / 86_400_000);
+}
+
 /** Same day `months` later, clamped to the month's end: "2026-01-31" + 1 → "2026-02-28". */
 export function addMonths(date: string, months: number): string {
   const year = Number(date.slice(0, 4));

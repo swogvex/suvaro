@@ -1,11 +1,44 @@
 ---
-import ComingSoon from '../../components/app/ComingSoon.astro';
+/**
+ * Home (`/app`): what's left this cycle and why. The cycle in `?cycle=YYYY-MM` (the current one when absent
+ * or invalid) is loaded on the server, so the first paint already has the numbers.
+ */
+import HomeDashboard from '../../components/home/HomeDashboard.svelte';
 import AppLayout from '../../layouts/AppLayout.astro';
-import { useTranslations } from '../../i18n';
+import { pickMessages, useTranslations } from '../../i18n';
+import { db } from '../../lib/db';
+import { chooseCycle } from '../../lib/home/cycle-param';
+import { loadHome } from '../../lib/home/repo';
+import { movementsContext } from '../../lib/movements/page';
 
-const t = useTranslations(Astro.locals.profile?.locale);
+const { user, profile } = Astro.locals;
+if (!user || !profile) throw new Error('Signed-in page');
+const context = await movementsContext(Astro.locals);
+const t = useTranslations(context.locale);
+const choice =
+  chooseCycle(Astro.url.searchParams.get('cycle'), profile.cycleStartDay, context.today) ??
+  chooseCycle(null, profile.cycleStartDay, context.today);
+if (!choice) throw new Error('The current cycle is always valid');
+const initial = await loadHome(db, user.id, choice.cycle, choice.previousCycle);
+const messages = pickMessages(context.locale, [
+  'home.',
+  'movements.income',
+  'movements.noCategory',
+  'movements.recurring',
+]);
 ---
 
 <AppLayout title={t('app.home')} section="home">
-  <ComingSoon title={t('app.homeGreeting')} text={t('app.soonHome')} icon="house" />
+  <HomeDashboard
+    client:load
+    initial={initial}
+    current={choice.current}
+    startDay={profile.cycleStartDay}
+    name={profile.displayName}
+    categories={context.categories}
+    today={context.today}
+    locale={context.locale}
+    currency={context.currency}
+    messages={messages}
+  />
 </AppLayout>

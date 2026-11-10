@@ -15,7 +15,7 @@ import type { CreateInput, UpdateInput } from './schema';
 
 type Row = typeof movement.$inferSelect;
 
-function toMovement(row: Row): Movement {
+export function toMovement(row: Row): Movement {
   return {
     id: row.id,
     type: row.type,
