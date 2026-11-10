@@ -8,12 +8,16 @@
  */
 import AppHeader from '../components/app/AppHeader.astro';
 import Dock from '../components/app/Dock.astro';
+import Shortcuts from '../components/app/Shortcuts.astro';
 import Toaster from '../components/app/Toaster.astro';
+import MovementEditor from '../components/movements/MovementEditor.svelte';
+import SearchDialog from '../components/movements/SearchDialog.svelte';
 import Icon from '../components/ui/Icon.astro';
 import BaseLayout from './BaseLayout.astro';
-import { useTranslations } from '../i18n';
+import { pickMessages, useTranslations } from '../i18n';
 import type { AppSection } from '../lib/app-nav';
 import { appPaths } from '../lib/routes';
+import { movementsContext } from '../lib/movements/page';
 import { flashMessageKey } from '../lib/toast';
 
 interface Props {
@@ -30,6 +34,11 @@ const locale = profile.locale;
 const t = useTranslations(locale);
 const flash = flashMessageKey(Astro.url.searchParams.get('done'));
 const showVerify = !user.emailVerified && Astro.url.pathname !== appPaths.verifyEmail;
+// The editor and search are on every app page (dock "+", header "New", shortcuts), not during onboarding.
+const context = bare ? null : await movementsContext(Astro.locals);
+const editorMessages = pickMessages(locale, ['editor.', 'movements.']);
+const searchMessages = pickMessages(locale, ['search.', 'movements.']);
+const searchable = [{ label: t('search.security'), href: appPaths.security }];
 ---
 
 <BaseLayout title={`${title} · Suvaro`} description={title} locale={locale} noindex>
@@ -56,6 +65,27 @@ const showVerify = !user.emailVerified && Astro.url.pathname !== appPaths.verify
     </main>
 
     {!bare && <Dock locale={locale} section={section} />}
+    {context && (
+      <>
+        <MovementEditor
+          client:load
+          categories={context.categories}
+          locale={locale}
+          currency={context.currency}
+          today={context.today}
+          messages={editorMessages}
+        />
+        <SearchDialog
+          client:idle
+          categories={context.categories}
+          locale={locale}
+          currency={context.currency}
+          settings={searchable}
+          messages={searchMessages}
+        />
+        <Shortcuts locale={locale} />
+      </>
+    )}
   </div>
 </BaseLayout>
 

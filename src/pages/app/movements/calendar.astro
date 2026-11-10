@@ -1,0 +1,46 @@
+---
+/**
+ * Movements · Calendar (`/app/movements/calendar?month=YYYY-MM`). Same filters as the list, in the URL.
+ */
+import MovementCalendar from '../../../components/movements/MovementCalendar.svelte';
+import MovementsHead from '../../../components/movements/MovementsHead.astro';
+import AppLayout from '../../../layouts/AppLayout.astro';
+import { pickMessages, useTranslations } from '../../../i18n';
+import { isIsoMonth, monthOf } from '../../../lib/dates';
+import { db } from '../../../lib/db';
+import { filtersToParams, parseFilters } from '../../../lib/movements/filters';
+import { movementsContext } from '../../../lib/movements/page';
+import { listMonth } from '../../../lib/movements/repo';
+
+const { user } = Astro.locals;
+if (!user) throw new Error('Signed-in page');
+const context = await movementsContext(Astro.locals);
+const t = useTranslations(context.locale);
+const { filters } = parseFilters(Astro.url.searchParams);
+const requested = Astro.url.searchParams.get('month') ?? '';
+const month = isIsoMonth(requested) ? requested : monthOf(context.today);
+const page = await listMonth(db, user.id, filters, context.today, month);
+const messages = pickMessages(context.locale, [
+  'movements.',
+  'filters.',
+  'calendar.',
+  'editor.income',
+  'editor.expense',
+]);
+---
+
+<AppLayout title={t('movements.calendar')} section="movements">
+  <MovementsHead view="calendar" query={filtersToParams(filters).toString()} />
+  <MovementCalendar
+    client:load
+    initial={page.items}
+    month={month}
+    filters={filters}
+    categories={context.categories}
+    locale={context.locale}
+    currency={context.currency}
+    today={context.today}
+    weekStart={context.weekStart}
+    messages={messages}
+  />
+</AppLayout>

@@ -1,9 +1,11 @@
 ---
 /**
  * Toast region: one toast at a time, ink background, `role="status"`. Mobile: top, under the header.
- * Desktop: bottom-right. Shows `message` from the server (e.g. after a form post) and any message sent with
- * `showToast()` from `src/lib/toast.ts`. Disappears after 5 s or with its close button.
- * @prop locale   Profile language (close button label).
+ * Desktop: bottom-right. Shows `message` from the server (e.g. after a form post) and any toast sent with
+ * `showToast()` from `src/lib/toast.ts`, optionally with "Undo · 5 s" and a visible countdown.
+ * Disappears after 5 s or with its close button. A new toast replaces the current one (which then counts
+ * as dismissed, so a pending delete is committed).
+ * @prop locale   Profile language (button labels).
  * @prop message  Optional message to show on load.
  */
 import Icon from '../ui/Icon.astro';
@@ -20,7 +22,15 @@ const t = useTranslations(locale);
 
 <div class="toaster" role="status" aria-live="polite" data-toaster>
   <div class="toast" data-toast hidden={!message}>
-    <p data-toast-text>{message}</p>
+    <p class="toast__text" data-toast-text>
+      {message}
+    </p>
+    <button class="toast__undo" type="button" aria-label={t('app.undo')} data-toast-undo hidden>
+      <!-- The countdown is visual only: a live region must not announce every second. -->
+      <span aria-hidden="true" data-toast-count data-label={t('app.undoIn')}>
+        {t('app.undo')}
+      </span>
+    </button>
     <button class="toast__close" type="button" aria-label={t('app.toastClose')} data-toast-close>
       <Icon name="x" />
     </button>
@@ -28,28 +38,59 @@ const t = useTranslations(locale);
 </div>
 
 <script>
-  import { TOAST_EVENT, type ToastDetail } from '../../lib/toast';
+  import { TOAST_EVENT, TOAST_MS, type ToastDetail } from '../../lib/toast';
 
   const toast = document.querySelector<HTMLElement>('[data-toast]');
   const text = document.querySelector<HTMLElement>('[data-toast-text]');
+  const undoButton = document.querySelector<HTMLButtonElement>('[data-toast-undo]');
+  const count = document.querySelector<HTMLElement>('[data-toast-count]');
   const close = document.querySelector<HTMLButtonElement>('[data-toast-close]');
-  let timer: ReturnType<typeof setTimeout> | undefined;
+  let current: ToastDetail | null = null;
+  let hideAt = 0;
+  let timer: ReturnType<typeof setInterval> | undefined;
 
-  function hide() {
+  /** Ends the current toast. `undone` skips its dismiss callback. */
+  function finish(undone = false) {
+    clearInterval(timer);
+    const ended = current;
+    current = null;
     if (toast) toast.hidden = true;
+    if (!undone) ended?.onDismiss?.();
   }
 
-  function show(message: string) {
-    if (!toast || !text) return;
-    text.textContent = message;
+  function tick() {
+    const left = Math.max(0, Math.ceil((hideAt - Date.now()) / 1000));
+    if (left === 0) return finish();
+    if (count && current?.undo)
+      count.textContent = (count.dataset['label'] ?? '{s}').replace('{s}', String(left));
+  }
+
+  function show(detail: ToastDetail) {
+    if (!toast || !text || !undoButton) return;
+    if (current) finish();
+    current = detail;
+    text.textContent = detail.message;
+    undoButton.hidden = !detail.undo;
+    hideAt = Date.now() + TOAST_MS;
     toast.hidden = false;
-    clearTimeout(timer);
-    timer = setTimeout(hide, 5000);
+    tick();
+    timer = setInterval(tick, 250);
   }
 
-  close?.addEventListener('click', hide);
-  window.addEventListener(TOAST_EVENT, (event) => show((event as CustomEvent<ToastDetail>).detail.message));
-  if (toast && !toast.hidden) timer = setTimeout(hide, 5000);
+  undoButton?.addEventListener('click', () => {
+    const undo = current?.undo;
+    finish(true);
+    undo?.();
+  });
+  close?.addEventListener('click', () => finish());
+  window.addEventListener(TOAST_EVENT, (event) => show((event as CustomEvent<ToastDetail>).detail));
+  // Leaving the page commits whatever the toast was holding back (e.g. a delete waiting for Undo).
+  window.addEventListener('pagehide', () => finish());
+  if (toast && !toast.hidden) {
+    current = { message: text?.textContent ?? '' };
+    hideAt = Date.now() + TOAST_MS;
+    timer = setInterval(tick, 250);
+  }
 </script>
 
 <style>
@@ -65,9 +106,9 @@ const t = useTranslations(locale);
 
   .toast {
     display: flex;
-    gap: var(--space-3);
+    gap: var(--space-2);
     align-items: center;
-    max-width: 26rem;
+    max-width: 30rem;
     padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
     border-radius: var(--radius-m);
     background: var(--ink);
@@ -76,8 +117,29 @@ const t = useTranslations(locale);
     pointer-events: auto;
   }
 
-  .toast[hidden] {
+  .toast[hidden],
+  .toast__undo[hidden] {
     display: none;
+  }
+
+  .toast__text {
+    flex: 1;
+    overflow-wrap: anywhere;
+  }
+
+  .toast__undo {
+    flex: none;
+    min-height: 2.75rem;
+    padding-inline: var(--space-3);
+    border: 1px solid currentColor;
+    border-radius: var(--radius-btn);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    cursor: pointer;
   }
 
   .toast__close {
@@ -92,6 +154,11 @@ const t = useTranslations(locale);
     background: transparent;
     color: inherit;
     cursor: pointer;
+  }
+
+  .toast__undo:focus-visible,
+  .toast__close:focus-visible {
+    outline-color: var(--bg);
   }
 
   .toast__close :global(svg) {

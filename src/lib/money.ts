@@ -21,19 +21,22 @@ interface FormatOptions {
   currency?: string;
   /** Rounds down to whole currency units, e.g. for "about 23 a day". */
   wholeUnits?: boolean;
+  /** Shows "+" on positive amounts too (signed movement amounts). */
+  sign?: boolean;
 }
 
 /** 48760 → "€487.60" (en) / "487,60 €" (es). Thousands are always grouped: "1.212,40 €". */
 export function formatMoney(
   cents: number,
   locale: Locale,
-  { currency = 'EUR', wholeUnits = false }: FormatOptions = {},
+  { currency = 'EUR', wholeUnits = false, sign = false }: FormatOptions = {},
 ): string {
   const value = wholeUnits ? centsToDecimal(Math.trunc(cents / 100) * 100) : centsToDecimal(cents);
   const format = new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     useGrouping: 'always',
+    ...(sign && { signDisplay: 'exceptZero' as const }),
     ...(wholeUnits && { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
   });
   // Intl accepts decimal strings (exact); TypeScript's lib still types `format` as number | bigint.
@@ -46,7 +49,18 @@ export function percent(part: number, total: number): number {
   return Math.round((part / total) * 100);
 }
 
-const decimalSeparator: Record<Locale, string> = { en: '.', es: ',' };
+export const decimalSeparator: Record<Locale, string> = { en: '.', es: ',' };
+
+/** Cents as the user would type them back: 2385 → "23.85" (en) / "23,85" (es), no grouping, no symbol. */
+export function centsToInput(cents: number, locale: Locale): string {
+  return centsToDecimal(cents).replace('.', decimalSeparator[locale]);
+}
+
+/** The currency symbol in this locale: EUR → "€", USD → "$" (en) / "US$" (es). */
+export function currencySymbol(locale: Locale, currency: string): string {
+  const parts = new Intl.NumberFormat(locale, { style: 'currency', currency }).formatToParts(0);
+  return parts.find((part) => part.type === 'currency')?.value ?? currency;
+}
 
 /**
  * Parses an amount typed by the user into integer cents, or null when it is not a valid positive amount.

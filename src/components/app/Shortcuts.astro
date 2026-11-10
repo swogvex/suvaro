@@ -1,0 +1,156 @@
+---
+/**
+ * Keyboard shortcuts for the app (desktop): `N` new movement, `/` or Ctrl/Cmd K search, `?` this list.
+ * Ignored while typing in a field or inside a dialog (Ctrl/Cmd K also works while typing outside dialogs).
+ * Also wires every `[data-open-editor]` / `[data-open-search]` button (header, dock, empty states).
+ * `←` `→` (change month) are handled by the calendar itself.
+ * @prop locale  Profile language.
+ */
+import { useTranslations, type Locale } from '../../i18n';
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const rows = [
+  { keys: [['N']], label: t('app.shortcutNew') },
+  { keys: [['/'], ['Ctrl', 'K']], label: t('app.shortcutSearch') },
+  { keys: [['←'], ['→']], label: t('app.shortcutPeriod') },
+  { keys: [['Enter']], label: t('app.shortcutSave') },
+  { keys: [['Esc']], label: t('app.shortcutClose') },
+  { keys: [['?']], label: t('app.shortcutHelp') },
+];
+---
+
+<dialog class="shortcuts" aria-labelledby="shortcuts-title" data-shortcuts>
+  <header class="shortcuts__head">
+    <h2 id="shortcuts-title">{t('app.shortcutsTitle')}</h2>
+    <button class="icon-btn" type="button" aria-label={t('app.toastClose')} data-shortcuts-close>
+      <Icon name="x" />
+    </button>
+  </header>
+  <dl class="shortcuts__list">
+    {rows.map(({ keys, label }) => (
+      <div class="shortcuts__row">
+        <dt>
+          {keys.map((combo, i) => (
+            <>
+              {i > 0 && <span class="shortcuts__or">{t('app.or')}</span>}
+              {combo.map((key) => (
+                <kbd class="kbd" data-mod-key={key === 'Ctrl' ? '' : undefined}>
+                  {key}
+                </kbd>
+              ))}
+            </>
+          ))}
+        </dt>
+        <dd>{label}</dd>
+      </div>
+    ))}
+  </dl>
+</dialog>
+
+<script>
+  import { openEditor, openSearch } from '../../lib/movements/client';
+
+  const dialog = document.querySelector<HTMLDialogElement>('[data-shortcuts]');
+  const isMac = /Mac|iPhone|iPad/.test(navigator.userAgent);
+  if (isMac) for (const key of document.querySelectorAll('[data-mod-key]')) key.textContent = '⌘';
+
+  document.querySelector('[data-shortcuts-close]')?.addEventListener('click', () => dialog?.close());
+
+  document.addEventListener('click', (event) => {
+    const target = (event.target as Element).closest('[data-open-editor], [data-open-search]');
+    if (!target) return;
+    if (target.hasAttribute('data-open-editor')) openEditor();
+    else openSearch();
+  });
+
+  function typing(target: EventTarget | null): boolean {
+    return (
+      target instanceof HTMLElement && Boolean(target.closest('input, textarea, select, [contenteditable]'))
+    );
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.defaultPrevented || event.isComposing) return;
+    const inDialog = Boolean(document.querySelector('dialog[open]'));
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && !event.altKey) {
+      if (inDialog) return;
+      event.preventDefault();
+      openSearch();
+      return;
+    }
+    if (event.ctrlKey || event.metaKey || event.altKey || inDialog || typing(event.target)) return;
+    if (event.key === 'n' || event.key === 'N') {
+      event.preventDefault();
+      openEditor();
+    } else if (event.key === '/') {
+      event.preventDefault();
+      openSearch();
+    } else if (event.key === '?') {
+      event.preventDefault();
+      dialog?.showModal();
+    }
+  });
+</script>
+
+<style>
+  .shortcuts {
+    width: min(28rem, calc(100% - 2 * var(--space-4)));
+    padding: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-float);
+  }
+
+  .shortcuts::backdrop {
+    background: rgb(20 18 16 / 0.45);
+  }
+
+  .shortcuts__head {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+    justify-content: space-between;
+    margin-block-end: var(--space-3);
+  }
+
+  .shortcuts__head h2 {
+    font-size: 1.25rem;
+  }
+
+  .shortcuts__list {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .shortcuts__row {
+    display: grid;
+    grid-template-columns: 8rem 1fr;
+    gap: var(--space-3);
+    align-items: center;
+  }
+
+  .shortcuts__row dt {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    align-items: center;
+  }
+
+  .shortcuts__row dd {
+    margin: 0;
+  }
+
+  .shortcuts__or {
+    color: var(--ink-2);
+    font-size: 0.75rem;
+  }
+</style>
