@@ -17,6 +17,7 @@ import BaseLayout from './BaseLayout.astro';
 import { pickMessages, useTranslations } from '../i18n';
 import type { AppSection } from '../lib/app-nav';
 import { appPaths } from '../lib/routes';
+import { settingsSections } from '../lib/settings/nav';
 import { db } from '../lib/db';
 import { describeError, logError } from '../lib/errors';
 import { movementsContext } from '../lib/movements/page';
@@ -42,7 +43,7 @@ const showVerify = !user.emailVerified && Astro.url.pathname !== appPaths.verify
 const context = bare ? null : await movementsContext(Astro.locals);
 const editorMessages = pickMessages(locale, ['editor.', 'movements.']);
 const searchMessages = pickMessages(locale, ['search.', 'movements.']);
-const searchable = [{ label: t('search.security'), href: appPaths.security }];
+const searchable = settingsSections.map((item) => ({ label: t(item.search), href: item.href }));
 
 // Budget alerts: new ones show as a toast once per cycle; the Plan tab keeps a dot until Plan is opened.
 let alert: string | null = null;
@@ -59,7 +60,13 @@ if (!bare) {
 }
 ---
 
-<BaseLayout title={`${title} · Suvaro`} description={title} locale={locale} noindex>
+<BaseLayout
+  title={`${title} · Suvaro`}
+  description={title}
+  locale={locale}
+  theme={{ mode: profile.mode, day: profile.themeDay, night: profile.themeNight }}
+  noindex
+>
   <div class:list={['app', bare && 'app--bare']}>
     <AppHeader locale={locale} section={section} nav={!bare} planDot={planDot} />
 

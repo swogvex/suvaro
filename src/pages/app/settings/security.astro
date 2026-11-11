@@ -9,7 +9,7 @@ import Badge from '../../../components/ui/Badge.astro';
 import Button from '../../../components/ui/Button.astro';
 import Card from '../../../components/ui/Card.astro';
 import Icon from '../../../components/ui/Icon.astro';
-import AppLayout from '../../../layouts/AppLayout.astro';
+import SettingsLayout from '../../../layouts/SettingsLayout.astro';
 import { dictionaries, useTranslations, type UiKey } from '../../../i18n';
 import { db } from '../../../lib/db';
 import { passkey, session } from '../../../lib/db/schema';
@@ -61,7 +61,7 @@ const islandMessages = Object.fromEntries(
 );
 ---
 
-<AppLayout title={t('security.title')} section="settings">
+<SettingsLayout current="security">
   <h1>{t('security.title')}</h1>
 
   <Card class="section">
@@ -152,7 +152,7 @@ const islandMessages = Object.fromEntries(
       </form>
     </div>
   </Card>
-</AppLayout>
+</SettingsLayout>
 
 <style>
   .section {

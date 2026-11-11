@@ -65,6 +65,7 @@ export const appPaths = {
   stats: '/app/stats',
   plan: '/app/plan',
   settings: '/app/settings',
+  appearance: '/app/settings/appearance',
   security: '/app/settings/security',
   verifyEmail: '/app/verify-email',
   demo: '/demo',
