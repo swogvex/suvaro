@@ -4,6 +4,7 @@
  * (session tokens, passkey keys, auth provider tokens, sign-in codes).
  */
 import { eq } from 'drizzle-orm';
+import { useTranslations, type Locale } from '../i18n';
 import type { Database } from './db/client';
 import {
   alertSeen,
@@ -135,31 +136,22 @@ export function tableCsv(rows: readonly Row[]): string {
   return `\uFEFF${lines.join('\r\n')}\r\n`;
 }
 
-const readme = {
-  en: `Suvaro — all your data
-
-data.json has everything in one file. The csv folder has one file per table (comma-separated, UTF-8).
-Amounts are in cents (1234 = 12.34). Dates are YYYY-MM-DD; times are UTC (ISO 8601).
-Left out on purpose: session tokens, passkey keys and sign-in codes (they are secrets, not your data).
-`,
-  es: `Suvaro — todos tus datos
-
-data.json lo tiene todo en un solo archivo. La carpeta csv tiene un archivo por tabla (separado por comas, UTF-8).
-Los importes van en céntimos (1234 = 12,34). Las fechas son AAAA-MM-DD; las horas, UTC (ISO 8601).
-Se dejan fuera a propósito: los tokens de sesión, las claves de las passkeys y los códigos de acceso (son secretos, no tus datos).
-`,
-};
+/** README.txt in the user's language (copy from the dictionaries). */
+function readme(locale: Locale): string {
+  const t = useTranslations(locale);
+  return `${t('export.readmeTitle')}\n\n${t('export.readmeFiles')}\n${t('export.readmeFormat')}\n${t('export.readmeSecrets')}\n`;
+}
 
 export async function exportUserData(
   db: Database,
   userId: string,
-  locale: 'en' | 'es',
+  locale: Locale,
   now: Date = new Date(),
 ): Promise<Uint8Array<ArrayBuffer>> {
   const tables = await collectUserData(db, userId);
   const json = Object.fromEntries(Object.entries(tables).map(([name, rows]) => [name, rows.map(plain)]));
   const files: ZipFile[] = [
-    { name: 'README.txt', content: readme[locale] },
+    { name: 'README.txt', content: readme(locale) },
     { name: 'data.json', content: JSON.stringify({ exportedAt: now.toISOString(), ...json }, null, 2) },
     ...Object.entries(tables).map(([name, rows]) => ({ name: `csv/${name}.csv`, content: tableCsv(rows) })),
   ];

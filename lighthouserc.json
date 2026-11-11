@@ -10,7 +10,10 @@
         "http://localhost:4321/es/legal/privacidad",
         "http://localhost:4321/legal/credits",
         "http://localhost:4321/sign-in",
-        "http://localhost:4321/es/acceso"
+        "http://localhost:4321/es/acceso",
+        "http://localhost:4321/demo",
+        "http://localhost:4321/es/demo",
+        "http://localhost:4321/demo/stats"
       ],
       "numberOfRuns": 3,
       "settings": { "chromeFlags": "--headless=new --no-sandbox" }
@@ -27,7 +30,7 @@
           }
         },
         {
-          "matchingUrlPattern": "/(sign-in|es/acceso)$",
+          "matchingUrlPattern": "/(sign-in|es/acceso|demo|es/demo|demo/stats)$",
           "assertions": {
             "categories:performance": ["error", { "minScore": 0.95, "aggregationMethod": "median-run" }],
             "categories:accessibility": ["error", { "minScore": 1 }],

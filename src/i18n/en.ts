@@ -299,6 +299,13 @@ export const en = {
   'demo.goal.lisbon': 'Trip to Lisbon',
   'demo.goal.emergency': 'Emergency fund',
   'demo.goal.phone': 'New phone',
+  'export.readmeTitle': 'Suvaro — all your data',
+  'export.readmeFiles':
+    'data.json has everything in one file. The csv folder has one file per table (comma-separated, UTF-8).',
+  'export.readmeFormat':
+    'Amounts are in cents (1234 = 12.34). Dates are YYYY-MM-DD; times are UTC (ISO 8601).',
+  'export.readmeSecrets':
+    'Left out on purpose: session tokens, passkey keys and sign-in codes (they are secrets, not your data).',
   'settings.appearance': 'Appearance',
   'settings.appearanceLead': 'Light or dark, and your colors for day and night.',
   'settings.security': 'Security',

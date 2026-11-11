@@ -305,6 +305,13 @@ export const es = {
   'demo.goal.lisbon': 'Viaje a Lisboa',
   'demo.goal.emergency': 'Fondo de emergencia',
   'demo.goal.phone': 'Móvil nuevo',
+  'export.readmeTitle': 'Suvaro — todos tus datos',
+  'export.readmeFiles':
+    'data.json lo tiene todo en un solo archivo. La carpeta csv tiene un archivo por tabla (separado por comas, UTF-8).',
+  'export.readmeFormat':
+    'Los importes van en céntimos (1234 = 12,34). Las fechas son AAAA-MM-DD; las horas, UTC (ISO 8601).',
+  'export.readmeSecrets':
+    'Se dejan fuera a propósito: los tokens de sesión, las claves de las passkeys y los códigos de acceso (son secretos, no tus datos).',
   'settings.appearance': 'Apariencia',
   'settings.appearanceLead': 'Claro u oscuro, y tus colores de día y de noche.',
   'settings.security': 'Seguridad',
