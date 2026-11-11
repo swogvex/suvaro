@@ -1,0 +1,39 @@
+---
+/**
+ * Currency `<select>`: common currencies first, then every ISO 4217 code the runtime knows, by name.
+ * Used by onboarding (step 1) and Settings › Preferences. Other attributes pass through to the select.
+ * @prop locale  Language of the currency names.
+ * @prop value   Selected code.
+ */
+import type { HTMLAttributes } from 'astro/types';
+import { useTranslations, type Locale } from '../../i18n';
+
+type Props = HTMLAttributes<'select'> & { locale: Locale; value: string };
+
+const { locale, value, class: className, ...rest } = Astro.props;
+const t = useTranslations(locale);
+const names = new Intl.DisplayNames(locale, { type: 'currency' });
+const common = ['EUR', 'USD', 'GBP', 'CHF', 'MXN', 'ARS', 'COP', 'CLP', 'PEN'];
+const all = Intl.supportedValuesOf('currency')
+  .filter((code) => !common.includes(code))
+  .map((code) => ({ code, name: names.of(code) ?? code }))
+  .sort((a, b) => a.name.localeCompare(b.name, locale));
+const label = (code: string, name = names.of(code) ?? code) => `${name} (${code})`;
+---
+
+<select class:list={['field__input', className]} {...rest}>
+  <optgroup label={t('onboarding.currencyCommon')}>
+    {common.map((code) => (
+      <option value={code} selected={value === code}>
+        {label(code)}
+      </option>
+    ))}
+  </optgroup>
+  <optgroup label={t('onboarding.currencyAll')}>
+    {all.map(({ code, name }) => (
+      <option value={code} selected={value === code}>
+        {label(code, name)}
+      </option>
+    ))}
+  </optgroup>
+</select>

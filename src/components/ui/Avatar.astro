@@ -1,0 +1,33 @@
+---
+/**
+ * The user's avatar: one of the nine own line drawings on its category color, radius 8. Decorative
+ * (the link or button around it carries the name).
+ * @prop avatar  Avatar name (`src/lib/avatars.ts`).
+ * @prop class   Extra classes (size comes from the parent: it fills its box).
+ */
+import { avatarColor, avatarIcon, type Avatar } from '../../lib/avatars';
+import Icon from './Icon.astro';
+
+interface Props {
+  avatar: Avatar;
+  class?: string;
+}
+
+const { avatar, class: className } = Astro.props;
+---
+
+<span class:list={['cat-tile', 'avatar', className]} data-color={avatarColor[avatar]} data-avatar={avatar}>
+  <Icon name={avatarIcon(avatar)} />
+</span>
+
+<style>
+  .avatar {
+    width: 100%;
+    height: 100%;
+  }
+
+  .avatar :global(svg) {
+    width: 55%;
+    height: 55%;
+  }
+</style>

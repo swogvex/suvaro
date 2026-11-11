@@ -11,3 +11,18 @@ export async function updateProfile(db: Database, userId: string, patch: Profile
   if (!row) throw new Error('Profile not found');
   return row;
 }
+
+/** What Settings can change, as the API answers it (no ids, timestamps or inactivity fields). */
+export function editableFields(row: Profile) {
+  return {
+    displayName: row.displayName,
+    avatar: row.avatar,
+    currency: row.currency,
+    locale: row.locale,
+    weekStart: row.weekStart,
+    cycleStartDay: row.cycleStartDay,
+    mode: row.mode,
+    themeDay: row.themeDay,
+    themeNight: row.themeNight,
+  };
+}

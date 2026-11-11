@@ -30,6 +30,7 @@ export const flashKeys = {
   'others-revoked': 'security.othersRevoked',
   'passkey-added': 'security.passkeySaved',
   'email-verified': 'verify.done',
+  saved: 'settings.saved',
 } as const;
 
 export type FlashKey = keyof typeof flashKeys;

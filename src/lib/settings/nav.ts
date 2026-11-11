@@ -3,7 +3,7 @@ import type { UiKey } from '../../i18n';
 import type { IconName } from '../icons';
 import { appPaths } from '../routes';
 
-export type SettingsSection = 'appearance' | 'security';
+export type SettingsSection = 'profile' | 'preferences' | 'appearance' | 'security';
 
 export const settingsSections: readonly {
   key: SettingsSection;
@@ -13,6 +13,22 @@ export const settingsSections: readonly {
   search: UiKey;
   icon: IconName;
 }[] = [
+  {
+    key: 'profile',
+    href: appPaths.profile,
+    title: 'settings.profile',
+    lead: 'settings.profileLead',
+    search: 'search.profile',
+    icon: 'user',
+  },
+  {
+    key: 'preferences',
+    href: appPaths.preferences,
+    title: 'settings.preferences',
+    lead: 'settings.preferencesLead',
+    search: 'search.preferences',
+    icon: 'sliders',
+  },
   {
     key: 'appearance',
     href: appPaths.appearance,

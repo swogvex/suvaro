@@ -165,4 +165,99 @@ test.describe('settings', () => {
     });
     expect(anonymous.status()).toBe(401);
   });
+
+  test('profile: the avatar is saved on click and the header follows; the name is saved', async ({
+    page,
+  }) => {
+    const errors = collectErrors(page);
+    await newUser(page, 'profile');
+    await page.goto('/app/settings/profile');
+    await waitForIslands(page);
+    await page.waitForLoadState('load');
+    const header = page.locator('.app-header__avatar .avatar');
+    await expect(header).toHaveAttribute('data-avatar', 'leaf');
+    await expect(page.getByRole('button', { name: 'Leaf' })).toHaveAttribute('aria-pressed', 'true');
+
+    const saved = page.waitForResponse((r) => r.url().endsWith('/api/profile'));
+    await page.getByRole('button', { name: 'Moon' }).click();
+    expect((await saved).status()).toBe(200);
+    await expect(page.getByRole('button', { name: 'Moon' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: 'Leaf' })).toHaveAttribute('aria-pressed', 'false');
+    await expect(header).toHaveAttribute('data-avatar', 'moon');
+
+    await page.getByLabel('Name', { exact: true }).fill('  Ada   Lovelace ');
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Saved.' })).toBeVisible();
+    await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Ada Lovelace');
+    await expect(page.getByLabel('Email', { exact: true })).toHaveAttribute('readonly', '');
+
+    await page.reload();
+    await expect(page.locator('.app-header__avatar .avatar')).toHaveAttribute('data-avatar', 'moon');
+    await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Ada Lovelace');
+    await expectNoHorizontalScroll(page);
+    await expectNoAxeViolationsInThemes(page);
+    expect(errors).toEqual([]);
+  });
+
+  test('preferences: currency note, saved changes and a language switch', async ({ page }) => {
+    const errors = collectErrors(page);
+    await newUser(page, 'prefs');
+    await page.goto('/app/settings/preferences');
+    await waitForIslands(page);
+    await page.waitForLoadState('load');
+    await expectNoHorizontalScroll(page);
+    await expectNoAxeViolationsInThemes(page);
+
+    const note = page.getByText('This doesn’t convert your amounts', { exact: false });
+    await expect(note).toBeHidden();
+    await page.getByLabel('Currency').selectOption('USD');
+    await expect(note).toBeVisible();
+    await page.getByRole('radio', { name: 'Sunday' }).check();
+    await page.getByLabel('Your month starts on day').selectOption('25');
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(page).toHaveURL(/\/app\/settings\/preferences\?done=saved$/);
+    await expect(page.getByRole('status').filter({ hasText: 'Saved.' })).toBeVisible();
+    await expect(page.getByLabel('Currency')).toHaveValue('USD');
+    await expect(page.getByRole('radio', { name: 'Sunday' })).toBeChecked();
+    await expect(page.getByLabel('Your month starts on day')).toHaveValue('25');
+
+    await waitForIslands(page);
+    await page.getByRole('radio', { name: 'Español' }).check();
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Preferencias');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+    await expect(page.getByRole('status').filter({ hasText: 'Guardado.' })).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
+  test('the profile API checks every field', async ({ page }) => {
+    await newUser(page, 'profile-fields');
+    const patch = (data: unknown) =>
+      page.request.fetch('/api/profile', {
+        method: 'PATCH',
+        data,
+        headers: { Origin: 'http://localhost:4321' },
+      });
+    const ok = await patch({
+      displayName: 'Ana',
+      avatar: 'fern',
+      currency: 'GBP',
+      weekStart: 7,
+      cycleStartDay: 28,
+    });
+    expect(ok.status()).toBe(200);
+    expect((await ok.json()).profile).toMatchObject({ displayName: 'Ana', avatar: 'fern', currency: 'GBP' });
+    for (const bad of [
+      { displayName: 'x'.repeat(41) },
+      { avatar: 'cat' },
+      { currency: 'ZZZ' },
+      { currency: 'eur' },
+      { locale: 'fr' },
+      { weekStart: 3 },
+      { cycleStartDay: 29 },
+      { cycleStartDay: 0 },
+    ]) {
+      expect((await patch(bad)).status(), JSON.stringify(bad)).toBe(400);
+    }
+  });
 });

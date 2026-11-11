@@ -10,6 +10,23 @@
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE.
  */
 export const icons = {
+  'avatar-leaf':
+    '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+  'avatar-stone':
+    '<ellipse cx="12" cy="18" rx="8" ry="3"/><ellipse cx="12" cy="11.5" rx="5.5" ry="2.5"/><ellipse cx="12" cy="6" rx="3.5" ry="2"/>',
+  'avatar-fern':
+    '<path d="M12 22V3"/><path d="M12 17c-3 0-5.5-1.5-6.5-4"/><path d="M12 17c3 0 5.5-1.5 6.5-4"/><path d="M12 12.5c-2.4 0-4.4-1.2-5.2-3.2"/><path d="M12 12.5c2.4 0 4.4-1.2 5.2-3.2"/><path d="M12 8c-1.6 0-3-.8-3.6-2.2"/><path d="M12 8c1.6 0 3-.8 3.6-2.2"/>',
+  'avatar-mushroom':
+    '<path d="M3.5 12a8.5 8 0 0 1 17 0Z"/><path d="M9.5 12v6.5a2.5 2.5 0 0 0 5 0V12"/><circle cx="9" cy="8" r="1"/><circle cx="14.5" cy="7" r="1"/>',
+  'avatar-wave':
+    '<path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>',
+  'avatar-mountain':
+    '<path d="m8 3 4 8 5-5 5 15H2L8 3z"/><path d="M4.14 15.08c2.62-1.57 5.24-1.43 7.86.42 2.74 1.94 5.49 2 8.23.19"/>',
+  'avatar-feather':
+    '<path d="M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.172a6 6 0 0 0-8.49-8.49L5.586 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z"/><path d="M16 8 2 22"/><path d="M17.5 15H9"/>',
+  'avatar-pinecone':
+    '<path d="M12 3c3.5 0 6 3.5 6 8.5S15 21 12 21s-6-4.5-6-9.5S8.5 3 12 3Z"/><path d="M8.5 5.8 12 8.5l3.5-2.7"/><path d="m6.6 9.6 5.4 4 5.4-4"/><path d="m6.5 14.2 5.5 4 5.5-4"/>',
+  'avatar-moon': '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/><path d="M19 3v4"/><path d="M21 5h-4"/>',
   'arrow-right': '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
   ban: '<circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/>',
   chart: '<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',

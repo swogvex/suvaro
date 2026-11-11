@@ -1,4 +1,5 @@
 import { sql } from 'drizzle-orm';
+import { avatars } from '../avatars';
 import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 /** Unix time in milliseconds, read and written as `Date` (Better Auth expects dates). */
@@ -142,18 +143,6 @@ const userId = () =>
   text('user_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' });
-
-export const avatars = [
-  'leaf',
-  'stone',
-  'fern',
-  'mushroom',
-  'wave',
-  'mountain',
-  'feather',
-  'pinecone',
-  'moon',
-] as const;
 
 export const profile = sqliteTable('profile', {
   userId: text('user_id')

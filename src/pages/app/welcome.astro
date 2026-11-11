@@ -4,6 +4,7 @@
  * Every step posts back here with the earlier answers as hidden fields; "Start" or "Skip setup" saves
  * everything in one transaction and goes to Home. See `src/lib/onboarding.ts`.
  */
+import CurrencySelect from '../../components/app/CurrencySelect.astro';
 import OnboardingHidden from '../../components/app/OnboardingHidden.astro';
 import Button from '../../components/ui/Button.astro';
 import Card from '../../components/ui/Card.astro';
@@ -104,13 +105,6 @@ const numberFormat = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, u
 const example = numberFormat.format(1850);
 const errorText = (key: UiKey | undefined) => (key ? t(key, { example }) : undefined);
 
-const currencyNames = new Intl.DisplayNames(locale, { type: 'currency' });
-const commonCurrencies = ['EUR', 'USD', 'GBP', 'CHF', 'MXN', 'ARS', 'COP', 'CLP', 'PEN'];
-const allCurrencies = Intl.supportedValuesOf('currency')
-  .map((code) => ({ code, name: currencyNames.of(code) ?? code }))
-  .sort((a, b) => a.name.localeCompare(b.name, locale));
-const currencyLabel = (code: string) => `${currencyNames.of(code) ?? code} (${code})`;
-
 const stepNames: Record<Step, UiKey> = {
   1: 'onboarding.step1',
   2: 'onboarding.step2',
@@ -189,30 +183,14 @@ const shown = {
               <label class="field__label" for="currency">
                 {t('onboarding.currency')}
               </label>
-              <select
-                class="field__input"
+              <CurrencySelect
+                locale={locale}
+                value={state.currency}
                 id="currency"
                 name="currency"
                 aria-invalid={errors.currency ? 'true' : undefined}
                 aria-describedby={errors.currency ? 'currency-error' : undefined}
-              >
-                <optgroup label={t('onboarding.currencyCommon')}>
-                  {commonCurrencies.map((code) => (
-                    <option value={code} selected={state.currency === code}>
-                      {currencyLabel(code)}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label={t('onboarding.currencyAll')}>
-                  {allCurrencies
-                    .filter(({ code }) => !commonCurrencies.includes(code))
-                    .map(({ code, name }) => (
-                      <option value={code} selected={state.currency === code}>
-                        {`${name} (${code})`}
-                      </option>
-                    ))}
-                </optgroup>
-              </select>
+              />
               {errors.currency && (
                 <p class="field__error" id="currency-error">
                   <Icon name="ban" />
