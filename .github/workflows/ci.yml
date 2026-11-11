@@ -16,7 +16,8 @@ jobs:
   verify:
     name: Check, lint, test, e2e, Lighthouse
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Lighthouse alone takes ~15 min since it covers Settings and the demo (25 public + 50 app runs).
+    timeout-minutes: 35
     env:
       CI: true
     steps:
