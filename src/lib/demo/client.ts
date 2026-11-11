@@ -1,16 +1,13 @@
 /**
- * Browser side of the demo: reads the page's sample state, answers every `/api/*` call from memory
- * (`handleDemoRequest`) and keeps links inside the demo (`/app/stats` → `/demo/stats`, `/es/demo/stats`).
- * The inline queue (`queue.ts`) has already replaced `fetch`; this module plugs the answers in.
+ * Browser side of the demo, first load: keeps links inside the demo (`/app/stats` → `/demo/stats`,
+ * `/es/demo/stats`) and loads the in-memory API (`api.ts`) when the page is idle or as soon as an island
+ * calls `/api/*`, whichever comes first. The inline queue (`queue.ts`) holds those calls until then.
  */
-import { handleDemoRequest, type DemoState } from './store';
-
-type Pending = [URL, RequestInit | undefined, (response: Response) => void, (error: unknown) => void];
 
 declare global {
   interface Window {
-    __demoFetch?: (url: URL, init?: RequestInit) => Promise<Response>;
-    __demoQueue?: Pending[];
+    __demoQueue?: unknown[];
+    __demoLoad?: () => void;
   }
 }
 
@@ -28,29 +25,14 @@ function rewriteLinks(root: ParentNode, prefix: string): void {
 }
 
 export function startDemo(prefix: string): void {
-  const source = document.getElementById('demo-state');
-  if (!source?.textContent) return;
-  const state = JSON.parse(source.textContent) as DemoState;
-
-  const answer = async (url: URL, init?: RequestInit): Promise<Response> => {
-    const method = (init?.method ?? 'GET').toUpperCase();
-    let body: Record<string, unknown> | null = null;
-    if (typeof init?.body === 'string') {
-      try {
-        body = JSON.parse(init.body) as Record<string, unknown>;
-      } catch {
-        return new Response(JSON.stringify({ error: 'INVALID_JSON' }), { status: 400 });
-      }
-    }
-    // Answer on a later tick, like the network: islands expect their optimistic update to paint first.
-    await new Promise((done) => setTimeout(done, 0));
-    return handleDemoRequest(state, url, method, body);
+  let loading: Promise<void> | null = null;
+  const load = () => {
+    loading ??= import('./api').then(({ startApi }) => startApi());
   };
-
-  window.__demoFetch = answer;
-  for (const [url, init, resolve, reject] of window.__demoQueue?.splice(0) ?? []) {
-    answer(url, init).then(resolve, reject);
-  }
+  window.__demoLoad = load;
+  if (window.__demoQueue?.length) load();
+  if ('requestIdleCallback' in window) requestIdleCallback(load, { timeout: 3_000 });
+  else setTimeout(load, 1_000);
 
   rewriteLinks(document, prefix);
   new MutationObserver((changes) => {

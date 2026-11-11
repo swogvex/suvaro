@@ -49,7 +49,6 @@ const stateJson = JSON.stringify(state).replace(/</g, '\u003c');
 >
   <Fragment slot="head">
     <script is:inline set:html={demoQueueScript} />
-    <script is:inline type="application/json" id="demo-state" set:html={stateJson} />
   </Fragment>
   <AppShell locale={locale} section={section} avatar="leaf" context={context} searchable={searchable}>
     <div class="banner banner--demo" slot="banner" data-demo-prefix={demoPrefix[locale]}>
@@ -61,6 +60,8 @@ const stateJson = JSON.stringify(state).replace(/</g, '\u003c');
     </div>
     <slot />
   </AppShell>
+  {/* At the end of the body: 20+ KB the first paint does not need. */}
+  <script is:inline type="application/json" id="demo-state" set:html={stateJson} />
 </BaseLayout>
 
 <script>
