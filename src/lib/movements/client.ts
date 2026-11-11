@@ -5,7 +5,7 @@
  * API; on failure the change is rolled back and an error toast explains it. Deletes wait for the 5-second
  * Undo before reaching the server (committed when the toast goes away, even when the page is left).
  */
-import { showToast } from '../toast';
+import { showPlanDot, showToast } from '../toast';
 import type { Movement } from './model';
 
 export const MOVEMENT_EVENT = 'suvaro:movement';
@@ -83,7 +83,12 @@ export class ApiError extends Error {
   }
 }
 
-async function call(method: string, path: string, body?: unknown, keepalive = false): Promise<Response> {
+export async function call(
+  method: string,
+  path: string,
+  body?: unknown,
+  keepalive = false,
+): Promise<Response> {
   let response: Response;
   try {
     response = await fetch(path, {
@@ -114,6 +119,17 @@ function body(movement: Movement) {
 
 const apiPath = (id: string) => `/api/movements/${id}`;
 
+/**
+ * A save may take a budget past 80 % or 100 % (the server answers with `alert`): the alert waits for the
+ * save's own toast (and its Undo) to end, and the Plan tab gets its dot.
+ */
+async function announceAlert(response: Response, stillWanted: () => boolean): Promise<void> {
+  const data = (await response.json().catch(() => null)) as { alert?: string | null } | null;
+  if (!data?.alert || !stillWanted()) return;
+  showPlanDot();
+  showToast(data.alert, { queue: true });
+}
+
 export interface WriteMessages {
   /** Toast after the write, e.g. "Saved: −23.85 € in Food". */
   done: string;
@@ -141,7 +157,7 @@ export function createMovement(movement: Movement, repeat: boolean, messages: Wr
   });
 
   return saved.then(
-    () => undefined,
+    (response) => announceAlert(response, () => !undone),
     (error: ApiError) => {
       if (undone) return;
       emitChange({ kind: 'remove', id: movement.id });
@@ -159,9 +175,11 @@ function restore(movement: Movement, error: ApiError, messages: WriteMessages) {
 export function updateMovement(before: Movement, after: Movement, messages: WriteMessages): Promise<void> {
   emitChange({ kind: 'upsert', movement: after });
   const saved = call('PATCH', apiPath(after.id), body(after));
+  let undone = false;
 
   showToast(messages.done, {
     undo: () => {
+      undone = true;
       emitChange({ kind: 'upsert', movement: before });
       saved.then(
         () =>
@@ -174,7 +192,7 @@ export function updateMovement(before: Movement, after: Movement, messages: Writ
   });
 
   return saved.then(
-    () => undefined,
+    (response) => announceAlert(response, () => !undone),
     (error: ApiError) => restore(before, error, messages),
   );
 }

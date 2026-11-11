@@ -61,6 +61,8 @@ async function deleteRow(page: Page, name: string) {
 
 test.describe('movements', () => {
   test('create, edit and delete with undo, optimistic and persisted', async ({ page }, info) => {
+    // Waits out several 5-second Undo toasts: close to the default 30 s on a busy machine.
+    test.slow();
     const errors = collectErrors(page);
     await newUser(page, 'crud');
     await page.goto('/app/movements');

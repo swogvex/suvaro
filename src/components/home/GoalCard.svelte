@@ -1,6 +1,6 @@
 <!--
   Pinned goal: progress ring, name, saved / target, deadline and "Set aside X a month", with a link to add
-  a contribution (in Plan). Without a pinned goal: a short prompt to pin one.
+  a contribution (opens Plan's contribute dialog for it). Without a pinned goal: a short prompt to pin one.
   Props: goal (or null), today, locale, currency, t.
 -->
 <script lang="ts">
@@ -56,7 +56,7 @@
     {:else if need !== null}
       <p class="goal__need">{t('home.goalNeed', { amount: money(need) })}</p>
     {/if}
-    <a class="btn btn--secondary goal__action" href={appPaths.plan}>
+    <a class="btn btn--secondary goal__action" href="{appPaths.plan}?contribute={goal.id}">
       <Icon name="plus" />
       {t('home.goalAdd')}
     </a>

@@ -12,6 +12,8 @@ export interface ToastOptions {
    * or the page being left (then it must not wait for anything, e.g. use `fetch(…, { keepalive: true })`).
    */
   onDismiss?: () => void;
+  /** Waits for the current toast to end instead of replacing it (e.g. a budget alert after "Saved · Undo"). */
+  queue?: boolean;
 }
 
 export interface ToastDetail extends ToastOptions {
@@ -34,4 +36,14 @@ export type FlashKey = keyof typeof flashKeys;
 
 export function flashMessageKey(value: string | null): (typeof flashKeys)[FlashKey] | undefined {
   return value && value in flashKeys ? flashKeys[value as FlashKey] : undefined;
+}
+
+/**
+ * Shows the dot on the Plan tab (header and dock): there are budget alerts not read on Plan yet.
+ * Not while Plan itself is open (the alert is on screen there).
+ */
+export function showPlanDot(): void {
+  for (const dot of document.querySelectorAll<HTMLElement>('[data-plan-dot]')) {
+    if (dot.closest('a')?.getAttribute('aria-current') !== 'page') dot.hidden = false;
+  }
 }

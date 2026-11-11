@@ -18,13 +18,20 @@ export function apiError(status: number, error: string): Response {
 
 export type BodyResult<T> = { ok: true; data: T } | { ok: false; response: Response };
 
-/** Reads a JSON body and validates it with `schema` (unknown keys rejected by strict schemas). */
-export async function readJson<T>(request: Request, schema: z.ZodType<T>): Promise<BodyResult<T>> {
+/**
+ * Reads a JSON body and validates it with `schema` (unknown keys rejected by strict schemas).
+ * `maxBytes` raises the size limit for the few bodies that carry a list (all budget limits at once).
+ */
+export async function readJson<T>(
+  request: Request,
+  schema: z.ZodType<T>,
+  maxBytes = MAX_BODY_BYTES,
+): Promise<BodyResult<T>> {
   if (!request.headers.get('content-type')?.startsWith('application/json')) {
     return { ok: false, response: apiError(415, 'UNSUPPORTED_MEDIA_TYPE') };
   }
   const text = await request.text();
-  if (text.length > MAX_BODY_BYTES) return { ok: false, response: apiError(413, 'TOO_LARGE') };
+  if (text.length > maxBytes) return { ok: false, response: apiError(413, 'TOO_LARGE') };
   let raw: unknown;
   try {
     raw = JSON.parse(text);

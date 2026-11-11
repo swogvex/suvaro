@@ -27,7 +27,11 @@
   } from '../../lib/movements/client';
   import { movementAmount, movementName } from '../../lib/movements/format';
   import { NOTE_MAX, type CategoryOption, type Movement, type MovementType } from '../../lib/movements/model';
+  import { inCycle } from '../../lib/cycle';
   import { centsToInput, currencySymbol, parseAmount } from '../../lib/money';
+  import { budgetAfterSave } from '../../lib/plan/calc';
+  import { fetchBudgetStatus } from '../../lib/plan/client';
+  import type { BudgetStatus } from '../../lib/plan/model';
   import Icon from '../ui/Icon.svelte';
 
   interface Props {
@@ -59,6 +63,8 @@
   let errors = $state<Partial<Record<Field, string>>>({});
   let online = $state(true);
   let ready = $state(false);
+  /** Category limits and this cycle's spending, read each time the editor opens (for the notice). */
+  let budgets = $state<BudgetStatus | null>(null);
 
   const yesterday = $derived(addDays(today, -1));
   const symbol = $derived(currencySymbol(locale, currency));
@@ -71,6 +77,25 @@
   const hiddenSelected = $derived(categoryId !== null && !top.some((c) => c.id === categoryId));
   const visibleCategories = $derived(showAll || hiddenSelected ? categories : top);
   const repeatDay = $derived(isIsoDate(date) ? Number(date.slice(8, 10)) : 1);
+
+  /** "Leisure would reach 115 % of its budget": shown before saving an expense that takes it ≥ 80 %. */
+  const budgetNotice = $derived.by(() => {
+    if (!budgets || type !== 'expense' || !categoryId || !isIsoDate(date) || !inCycle(date, budgets.cycle))
+      return null;
+    const limit = budgets.limits.find((l) => l.categoryId === categoryId);
+    const cents = parseAmount(amountText, locale);
+    if (!limit || cents === null || cents <= 0) return null;
+    const counted =
+      editing?.type === 'expense' && editing.categoryId === categoryId && inCycle(editing.date, budgets.cycle)
+        ? editing.amountCents
+        : 0;
+    const pct = budgetAfterSave(limit.limitCents, budgets.spent[categoryId] ?? 0, cents, counted);
+    if (pct === null) return null;
+    const category = categoryOf(categoryId)?.name ?? '';
+    return pct >= 100
+      ? t('editor.budgetNoticeOver', { category, pct })
+      : t('editor.budgetNotice', { category, pct });
+  });
 
   onMount(() => {
     online = navigator.onLine;
@@ -88,6 +113,11 @@
 
   async function open(request: EditorRequest) {
     const movement = request.movement ?? null;
+    budgets = null;
+    fetchBudgetStatus().then(
+      (status) => (budgets = status),
+      () => undefined,
+    );
     editing = movement;
     errors = {};
     showAll = false;
@@ -347,7 +377,9 @@
           <p class="field__hint editor__recurring"><Icon name="repeat" />{t('editor.recurringNote')}</p>
         {/if}
 
-        <!-- Budget notice (80 % / 100 % of a category budget) arrives with budgets. -->
+        {#if budgetNotice}
+          <p class="editor__notice" role="status"><Icon name="alert" />{budgetNotice}</p>
+        {/if}
       </div>
 
       <footer class="editor__foot">
@@ -520,6 +552,23 @@
   .editor__repeat label {
     font-weight: 600;
     cursor: pointer;
+  }
+
+  .editor__notice {
+    display: flex;
+    gap: var(--space-2);
+    align-items: flex-start;
+    padding: var(--space-3);
+    border: 1px solid var(--warning);
+    border-radius: var(--radius-s);
+    font-weight: 500;
+  }
+
+  .editor__notice :global(svg) {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--warning);
   }
 
   .editor__recurring {

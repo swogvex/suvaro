@@ -22,6 +22,13 @@
       "when": 1794328136928,
       "tag": "0002_plan",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1794353487868,
+      "tag": "0003_alert_seen",
+      "breakpoints": true
     }
   ]
 }

@@ -17,7 +17,11 @@ import BaseLayout from './BaseLayout.astro';
 import { pickMessages, useTranslations } from '../i18n';
 import type { AppSection } from '../lib/app-nav';
 import { appPaths } from '../lib/routes';
+import { db } from '../lib/db';
+import { describeError, logError } from '../lib/errors';
 import { movementsContext } from '../lib/movements/page';
+import { currentCycle, newAlertMessage } from '../lib/plan/notify';
+import { markAlertsRead, unreadAlerts } from '../lib/plan/repo';
 import { flashMessageKey } from '../lib/toast';
 
 interface Props {
@@ -39,11 +43,25 @@ const context = bare ? null : await movementsContext(Astro.locals);
 const editorMessages = pickMessages(locale, ['editor.', 'movements.']);
 const searchMessages = pickMessages(locale, ['search.', 'movements.']);
 const searchable = [{ label: t('search.security'), href: appPaths.security }];
+
+// Budget alerts: new ones show as a toast once per cycle; the Plan tab keeps a dot until Plan is opened.
+let alert: string | null = null;
+let planDot = false;
+if (!bare) {
+  try {
+    alert = await newAlertMessage(db, user.id, profile);
+    const cycle = currentCycle(profile);
+    if (section === 'plan') await markAlertsRead(db, user.id, cycle);
+    else planDot = (await unreadAlerts(db, user.id, cycle)) > 0;
+  } catch (error) {
+    await logError(Astro.url.pathname, 'BUDGET_ALERTS', describeError(error));
+  }
+}
 ---
 
 <BaseLayout title={`${title} · Suvaro`} description={title} locale={locale} noindex>
   <div class:list={['app', bare && 'app--bare']}>
-    <AppHeader locale={locale} section={section} nav={!bare} />
+    <AppHeader locale={locale} section={section} nav={!bare} planDot={planDot} />
 
     <main id="main" class="container app__main">
       <p class="banner banner--offline" data-offline-banner hidden>
@@ -61,10 +79,10 @@ const searchable = [{ label: t('search.security'), href: appPaths.security }];
       )}
 
       <slot />
-      <Toaster locale={locale} message={flash && t(flash)} />
+      <Toaster locale={locale} message={flash && t(flash)} alert={alert} />
     </main>
 
-    {!bare && <Dock locale={locale} section={section} />}
+    {!bare && <Dock locale={locale} section={section} planDot={planDot} />}
     {context && (
       <>
         <MovementEditor
