@@ -1,0 +1,146 @@
+---
+/**
+ * Layout for one Settings section (`/app/settings/*`). Desktop (≥ 60 rem): side navigation + content.
+ * Phones and tablets: a "All settings" link back to the list (`/app/settings`), then the content.
+ * @prop current  The section on screen (its link gets `aria-current`).
+ * The page supplies its own h1 and content in the default slot.
+ */
+import Icon from '../components/ui/Icon.astro';
+import AppLayout from './AppLayout.astro';
+import { useTranslations } from '../i18n';
+import { appPaths } from '../lib/routes';
+import { settingsSections, type SettingsSection } from '../lib/settings/nav';
+
+interface Props {
+  current: SettingsSection;
+}
+
+const { current } = Astro.props;
+const { profile } = Astro.locals;
+if (!profile) throw new Error('Signed-in page');
+const t = useTranslations(profile.locale);
+const section = settingsSections.find((item) => item.key === current);
+if (!section) throw new Error(`Unknown settings section ${current}`);
+---
+
+<AppLayout title={t(section.title)} section="settings">
+  <div class="settings">
+    <nav class="settings__nav" aria-label={t('settings.navLabel')}>
+      <p class="settings__nav-title">{t('settings.title')}</p>
+      <ul>
+        {settingsSections.map((item) => (
+          <li>
+            <a href={item.href} aria-current={item.key === current ? 'page' : undefined}>
+              <Icon name={item.icon} />
+              {t(item.title)}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="settings__content">
+      <a class="settings__back" href={appPaths.settings}>
+        <Icon name="arrow-left" />
+        {t('settings.back')}
+      </a>
+      <slot />
+    </div>
+  </div>
+</AppLayout>
+
+<style>
+  .settings {
+    display: grid;
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  .settings__content {
+    display: grid;
+    gap: var(--space-6);
+    min-width: 0;
+  }
+
+  .settings__nav {
+    display: none;
+  }
+
+  .settings__back {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    justify-self: start;
+    min-height: 44px;
+    color: var(--ink-2);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .settings__back:hover {
+    color: var(--ink);
+  }
+
+  .settings__back :global(svg) {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  @media (min-width: 60rem) {
+    .settings {
+      grid-template-columns: 14rem minmax(0, 1fr);
+      gap: var(--space-8);
+    }
+
+    .settings__back {
+      display: none;
+    }
+
+    .settings__nav {
+      position: sticky;
+      inset-block-start: var(--space-6);
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .settings__nav-title {
+      color: var(--ink-2);
+      font-size: 0.8125rem;
+      font-weight: 500;
+    }
+
+    .settings__nav ul {
+      display: grid;
+      gap: var(--space-1);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .settings__nav a {
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+      min-height: 44px;
+      padding-inline: var(--space-3);
+      border-radius: var(--radius-btn);
+      color: var(--ink);
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .settings__nav a:hover {
+      background: var(--surface-2);
+    }
+
+    .settings__nav a[aria-current='page'] {
+      background: var(--ink);
+      color: var(--bg);
+    }
+
+    .settings__nav :global(svg) {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+</style>

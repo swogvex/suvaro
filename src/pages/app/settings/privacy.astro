@@ -1,0 +1,158 @@
+---
+/**
+ * Settings › Privacy & data: the inactivity rule with the last use, "Download all my data" (a plain link
+ * to the ZIP endpoint) and "Delete my account" (island: confirm with a passkey or an email code first).
+ */
+import { count, eq } from 'drizzle-orm';
+import DeleteAccount from '../../../components/settings/DeleteAccount.svelte';
+import Card from '../../../components/ui/Card.astro';
+import Icon from '../../../components/ui/Icon.astro';
+import SettingsLayout from '../../../layouts/SettingsLayout.astro';
+import { pickMessages, useTranslations } from '../../../i18n';
+import { todayIn } from '../../../lib/dates';
+import { db } from '../../../lib/db';
+import { passkey } from '../../../lib/db/schema';
+import { homePath } from '../../../lib/routes';
+
+const { profile, user } = Astro.locals;
+if (!profile || !user) throw new Error('Signed-in page');
+const locale = profile.locale;
+const t = useTranslations(locale);
+
+const [keys] = await db.select({ n: count() }).from(passkey).where(eq(passkey.userId, user.id));
+const lastDay = new Intl.DateTimeFormat('en-CA', { timeZone: profile.timezone }).format(profile.lastActiveAt);
+const lastUse =
+  lastDay === todayIn(profile.timezone)
+    ? t('privacy.today')
+    : new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeZone: profile.timezone }).format(
+        profile.lastActiveAt,
+      );
+const messages = pickMessages(locale, ['privacy.', 'signIn.error']);
+---
+
+<SettingsLayout current="privacy">
+  <h1>{t('settings.privacy')}</h1>
+
+  <div class="privacy">
+    <Card as="section" class="section section--note" aria-labelledby="inactivity-title">
+      <span class="section__icon" aria-hidden="true">
+        <Icon name="clock" />
+      </span>
+      <div class="section__text">
+        <h2 class="section__title" id="inactivity-title">
+          {t('privacy.inactivityTitle')}
+        </h2>
+        <p class="section__lead">{t('privacy.inactivity')}</p>
+        <p class="section__lead">{t('privacy.lastUse', { date: lastUse })}</p>
+      </div>
+    </Card>
+
+    <div class="privacy__pair">
+      <Card as="section" class="section" aria-labelledby="export-title">
+        <h2 class="section__title" id="export-title">
+          {t('privacy.exportTitle')}
+        </h2>
+        <p class="section__lead">{t('privacy.exportLead')}</p>
+        <a class="btn btn--secondary section__action" href="/api/account/export" download>
+          <Icon name="download" />
+          {t('privacy.exportAction')}
+        </a>
+      </Card>
+
+      <Card as="section" class="section" aria-labelledby="delete-title">
+        <h2 class="section__title" id="delete-title">
+          {t('privacy.deleteTitle')}
+        </h2>
+        <p class="section__lead">{t('privacy.deleteLead')}</p>
+        <div class="section__action">
+          <DeleteAccount
+            client:load
+            userId={user.id}
+            email={user.email}
+            hasPasskeys={(keys?.n ?? 0) > 0}
+            homeHref={homePath(locale)}
+            locale={locale}
+            messages={messages}
+          />
+        </div>
+      </Card>
+    </div>
+  </div>
+</SettingsLayout>
+
+<style>
+  .privacy {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .privacy__pair {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .privacy :global(.section) {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+  }
+
+  .privacy :global(.section--note) {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+  }
+
+  .section__icon {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-btn);
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+
+  .section__icon :global(svg) {
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+
+  .section__text {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .section__title {
+    font-family: var(--font-ui);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.3;
+  }
+
+  .section__lead {
+    color: var(--ink-2);
+  }
+
+  .section__action {
+    justify-self: start;
+    margin-block-start: var(--space-2);
+  }
+
+  /* Desktop: download and delete side by side, their buttons on one line at the bottom. */
+  @media (min-width: 48rem) {
+    .privacy__pair {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: stretch;
+    }
+
+    .privacy__pair > :global(.section) {
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .privacy__pair .section__action {
+      align-self: end;
+    }
+  }
+</style>

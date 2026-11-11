@@ -29,6 +29,11 @@ module.exports = {
         'http://localhost:4321/app/movements/calendar',
         'http://localhost:4321/app/stats',
         'http://localhost:4321/app/plan',
+        'http://localhost:4321/app/settings',
+        'http://localhost:4321/app/settings/appearance',
+        'http://localhost:4321/app/settings/categories',
+        'http://localhost:4321/app/settings/security',
+        'http://localhost:4321/app/settings/privacy',
       ],
       numberOfRuns: 5,
       settings: {

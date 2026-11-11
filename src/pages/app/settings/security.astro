@@ -5,12 +5,13 @@
  */
 import { desc, eq } from 'drizzle-orm';
 import AddPasskey from '../../../components/app/AddPasskey.svelte';
+import PasskeyList from '../../../components/settings/PasskeyList.svelte';
 import Badge from '../../../components/ui/Badge.astro';
 import Button from '../../../components/ui/Button.astro';
 import Card from '../../../components/ui/Card.astro';
 import Icon from '../../../components/ui/Icon.astro';
-import AppLayout from '../../../layouts/AppLayout.astro';
-import { dictionaries, useTranslations, type UiKey } from '../../../i18n';
+import SettingsLayout from '../../../layouts/SettingsLayout.astro';
+import { dictionaries, pickMessages, useTranslations, type UiKey } from '../../../i18n';
 import { db } from '../../../lib/db';
 import { passkey, session } from '../../../lib/db/schema';
 import { appPaths } from '../../../lib/routes';
@@ -61,7 +62,7 @@ const islandMessages = Object.fromEntries(
 );
 ---
 
-<AppLayout title={t('security.title')} section="settings">
+<SettingsLayout current="security">
   <h1>{t('security.title')}</h1>
 
   <Card class="section">
@@ -81,25 +82,16 @@ const islandMessages = Object.fromEntries(
   <Card class="section">
     <h2 class="section__title">{t('security.passkeysTitle')}</h2>
     <p class="section__lead">{t('security.passkeysLead')}</p>
-    {passkeys.length === 0 ? (
-      <p class="section__lead">{t('security.passkeysEmpty')}</p>
-    ) : (
-      <ul class="list">
-        {passkeys.map((row) => (
-          <li class="row">
-            <Icon name="key" />
-            <span class="row__main">
-              <span class="row__name">{row.name || t('security.passkeyUnnamed')}</span>
-              {row.createdAt && (
-                <span class="row__meta">
-                  {t('security.passkeyAdded', { date: date.format(row.createdAt) })}
-                </span>
-              )}
-            </span>
-          </li>
-        ))}
-      </ul>
-    )}
+    <PasskeyList
+      client:load
+      passkeys={passkeys.map((row) => ({
+        id: row.id,
+        name: row.name,
+        added: row.createdAt ? date.format(row.createdAt) : null,
+      }))}
+      emailVerified={user.emailVerified}
+      messages={pickMessages(locale, ['security.', 'settings.saveError'])}
+    />
     <AddPasskey client:visible locale={locale} messages={islandMessages} />
   </Card>
 
@@ -135,7 +127,7 @@ const islandMessages = Object.fromEntries(
         </li>
       ))}
     </ul>
-    <div class="actions">
+    <div class="btn-group">
       {sessions.length > 1 && (
         <form method="post" action="/api/sessions">
           <input type="hidden" name="action" value="revoke-others" />
@@ -152,7 +144,7 @@ const islandMessages = Object.fromEntries(
       </form>
     </div>
   </Card>
-</AppLayout>
+</SettingsLayout>
 
 <style>
   .section {
@@ -216,11 +208,5 @@ const islandMessages = Object.fromEntries(
   .row__meta {
     color: var(--ink-2);
     font-size: 0.875rem;
-  }
-
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
   }
 </style>

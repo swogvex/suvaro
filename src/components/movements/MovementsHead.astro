@@ -4,8 +4,11 @@
  * current filters; Recurring has none. A dot on Recurring says something is waiting for confirmation.
  * @prop view   Current view.
  * @prop query  Filter query to keep in the links (no leading "?").
+ * @prop locale  Page language (default: the profile's).
+ * @prop counts  Recurring templates and pending confirmations; read from the database when absent (the demo
+ *               passes its own).
  */
-import { useTranslations } from '../../i18n';
+import { useTranslations, type Locale } from '../../i18n';
 import { db } from '../../lib/db';
 import { countPending, countRecurring } from '../../lib/recurring/repo';
 import { appPaths } from '../../lib/routes';
@@ -14,16 +17,18 @@ import Icon from '../ui/Icon.astro';
 interface Props {
   view: 'list' | 'calendar' | 'recurring';
   query: string;
+  locale?: Locale;
+  counts?: { recurring: number; pending: number };
 }
 
-const { view, query } = Astro.props;
+const { view, query, locale, counts } = Astro.props;
 const { user, profile } = Astro.locals;
-if (!user) throw new Error('Signed-in component');
-const t = useTranslations(profile?.locale);
-const [recurringCount, pendingCount] = await Promise.all([
-  countRecurring(db, user.id),
-  countPending(db, user.id),
-]);
+const t = useTranslations(locale ?? profile?.locale);
+async function fromDatabase() {
+  if (!user) throw new Error('Signed-in component');
+  return Promise.all([countRecurring(db, user.id), countPending(db, user.id)]);
+}
+const [recurringCount, pendingCount] = counts ? [counts.recurring, counts.pending] : await fromDatabase();
 const suffix = query ? `?${query}` : '';
 const views = [
   { key: 'list', href: `${appPaths.movements}${suffix}`, label: t('movements.list'), icon: 'list' },

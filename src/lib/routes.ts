@@ -65,7 +65,12 @@ export const appPaths = {
   stats: '/app/stats',
   plan: '/app/plan',
   settings: '/app/settings',
+  profile: '/app/settings/profile',
+  preferences: '/app/settings/preferences',
+  appearance: '/app/settings/appearance',
+  categories: '/app/settings/categories',
   security: '/app/settings/security',
+  privacy: '/app/settings/privacy',
   verifyEmail: '/app/verify-email',
   demo: '/demo',
 } as const;

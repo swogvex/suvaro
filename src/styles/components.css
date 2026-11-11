@@ -85,6 +85,27 @@
   height: 1.25rem;
 }
 
+/* Buttons side by side always share one size: equal columns as wide as the widest label.
+   Dialog footers do the same (`.sheet__actions`, `.editor__actions`). */
+.btn-group {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: var(--space-2);
+  /* fit-content, not max-content: on a narrow screen the group may shrink (labels wrap) instead of
+     widening its card past the viewport. */
+  width: fit-content;
+  max-width: 100%;
+}
+
+.btn-group > form {
+  display: grid;
+}
+
+.btn-group > form > .btn {
+  width: 100%;
+}
+
 /* ---------- IconButton ---------- */
 .icon-btn {
   display: inline-grid;
@@ -582,4 +603,38 @@ a.segmented__item[aria-current='page'] {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--tracking-number);
+}
+
+/* ---------- App banners (offline, confirm email, demo) ---------- */
+.banner {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-m);
+  color: var(--ink);
+}
+
+.banner svg {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.banner--offline {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.banner--verify {
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.banner--verify svg {
+  color: var(--accent);
+}
+
+.banner[hidden] {
+  display: none;
 }

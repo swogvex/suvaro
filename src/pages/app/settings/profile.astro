@@ -1,0 +1,232 @@
+---
+/**
+ * Settings › Profile: avatar (3×3 picker, saved on click, the header follows at once) and display name
+ * (saved with its button). Email is read-only. Saves with `PATCH /api/profile`.
+ */
+import Avatar from '../../../components/ui/Avatar.astro';
+import Card from '../../../components/ui/Card.astro';
+import Field from '../../../components/ui/Field.astro';
+import SettingsLayout from '../../../layouts/SettingsLayout.astro';
+import { useTranslations } from '../../../i18n';
+import { avatars } from '../../../lib/avatars';
+import { DISPLAY_NAME_MAX } from '../../../lib/settings/schema';
+
+const { profile, user } = Astro.locals;
+if (!profile || !user) throw new Error('Signed-in page');
+const t = useTranslations(profile.locale);
+---
+
+<SettingsLayout current="profile">
+  <h1>{t('settings.profile')}</h1>
+
+  <div class="profile" data-profile data-saved={t('settings.saved')} data-error={t('settings.saveError')}>
+    <Card as="section" class="section" aria-labelledby="avatar-title">
+      <div class="section__head">
+        <h2 class="section__title" id="avatar-title">
+          {t('profile.avatarTitle')}
+        </h2>
+        <p class="section__lead">{t('profile.avatarLead')}</p>
+      </div>
+      <div class="avatars" role="group" aria-labelledby="avatar-title">
+        {avatars.map((name) => (
+          <button
+            class="avatars__item"
+            type="button"
+            data-avatar-choice={name}
+            aria-pressed={profile.avatar === name ? 'true' : 'false'}
+            aria-label={t(`avatar.${name}`)}
+          >
+            <Avatar avatar={name} />
+          </button>
+        ))}
+      </div>
+    </Card>
+
+    <Card as="section" class="section" aria-labelledby="name-title">
+      <h2 class="section__title" id="name-title">
+        {t('profile.nameTitle')}
+      </h2>
+      <form class="name-form" data-name-form novalidate>
+        <Field
+          id="display-name"
+          name="displayName"
+          label={t('profile.name')}
+          hint={t('profile.nameHint')}
+          value={profile.displayName}
+          maxlength={DISPLAY_NAME_MAX}
+          autocomplete="nickname"
+        />
+        <button class="btn btn--primary name-form__save" type="submit">
+          {t('settings.save')}
+        </button>
+      </form>
+      <div class="field">
+        <label class="field__label" for="email">
+          {t('profile.email')}
+        </label>
+        <input
+          class="field__input"
+          id="email"
+          type="email"
+          value={user.email}
+          readonly
+          aria-describedby="email-note"
+        />
+        <p class="field__hint" id="email-note">
+          {t('profile.emailNote')}
+        </p>
+      </div>
+    </Card>
+  </div>
+</SettingsLayout>
+
+<script>
+  import { call } from '../../../lib/movements/client';
+  import { showToast } from '../../../lib/toast';
+
+  const root = document.querySelector<HTMLElement>('[data-profile]');
+
+  if (root) {
+    const saved = root.dataset['saved'] ?? '';
+    const failed = root.dataset['error'] ?? '';
+    const choices = [...root.querySelectorAll<HTMLButtonElement>('[data-avatar-choice]')];
+
+    /** Marks one avatar as chosen and paints it in the header too. */
+    function pick(button: HTMLButtonElement) {
+      for (const choice of choices) choice.setAttribute('aria-pressed', String(choice === button));
+      const art = button.querySelector('.avatar');
+      const header = document.querySelector('.app-header__avatar .avatar');
+      if (art && header) header.replaceWith(art.cloneNode(true));
+    }
+
+    let saving: Promise<unknown> = Promise.resolve();
+    for (const button of choices) {
+      button.addEventListener('click', () => {
+        if (button.getAttribute('aria-pressed') === 'true') return;
+        const before = choices.find((choice) => choice.getAttribute('aria-pressed') === 'true');
+        pick(button);
+        saving = saving
+          .then(() => call('PATCH', '/api/profile', { avatar: button.dataset['avatarChoice'] }))
+          .then(() => showToast(saved))
+          .catch(() => {
+            if (before) pick(before);
+            showToast(failed);
+          });
+      });
+    }
+
+    const form = root.querySelector<HTMLFormElement>('[data-name-form]');
+    form?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const input = form.querySelector<HTMLInputElement>('input[name="displayName"]');
+      const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (!input || !submit) return;
+      submit.disabled = true;
+      try {
+        const response = await call('PATCH', '/api/profile', { displayName: input.value });
+        const data = (await response.json()) as { profile: { displayName: string } };
+        input.value = data.profile.displayName;
+        showToast(saved);
+      } catch {
+        showToast(failed);
+      } finally {
+        submit.disabled = false;
+      }
+    });
+  }
+</script>
+
+<style>
+  .profile {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  /* Desktop: the avatar picker beside name and email (one wide card would leave its right side empty). */
+  @media (min-width: 60rem) {
+    .profile {
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: stretch;
+    }
+
+    .profile :global(.section:first-child) {
+      align-content: start;
+      max-width: 19rem;
+    }
+  }
+
+  .profile :global(.section) {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .section__head {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .section__title {
+    font-family: var(--font-ui);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.3;
+  }
+
+  .section__lead {
+    color: var(--ink-2);
+  }
+
+  .avatars {
+    display: grid;
+    grid-template-columns: repeat(3, 4.5rem);
+    gap: var(--space-3);
+  }
+
+  .avatars__item {
+    display: grid;
+    width: 4.5rem;
+    height: 4.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-btn);
+    background: none;
+    cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease);
+  }
+
+  .avatars__item:hover {
+    transform: translateY(-1px);
+  }
+
+  .avatars__item[aria-pressed='true'] {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .avatars__item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .avatars__item[aria-pressed='true']:focus-visible {
+    outline-width: 3px;
+    box-shadow: 0 0 0 6px var(--accent-soft);
+  }
+
+  .name-form {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .name-form__save {
+    justify-self: start;
+    min-width: 8rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .avatars__item:hover {
+      transform: none;
+    }
+  }
+</style>

@@ -1,4 +1,5 @@
 import { sql } from 'drizzle-orm';
+import { avatars } from '../avatars';
 import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 /** Unix time in milliseconds, read and written as `Date` (Better Auth expects dates). */
@@ -143,18 +144,6 @@ const userId = () =>
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' });
 
-export const avatars = [
-  'leaf',
-  'stone',
-  'fern',
-  'mushroom',
-  'wave',
-  'mountain',
-  'feather',
-  'pinecone',
-  'moon',
-] as const;
-
 export const profile = sqliteTable('profile', {
   userId: text('user_id')
     .primaryKey()
@@ -281,7 +270,14 @@ export const emailQueue = sqliteTable(
   {
     id: text('id').primaryKey(),
     kind: text('kind', {
-      enum: ['otp', 'inactivity-25', 'inactivity-29', 'account-deleted', 'unverified-deleted'],
+      enum: [
+        'otp',
+        'inactivity-25',
+        'inactivity-29',
+        'account-deleted',
+        'unverified-deleted',
+        'account-deleted-by-user',
+      ],
     }).notNull(),
     userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
     /** UTC day `YYYY-MM-DD` the email counts toward. */

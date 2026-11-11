@@ -7,13 +7,14 @@
  * @prop alternates   Path of this page in each locale, for canonical + hreflang. Omit on pages without translations.
  * @prop noindex      Adds `noindex` for app, demo, sign-in and error pages (and skips canonical/OG URL).
  * @prop analytics    Loads Vercel Web Analytics + Speed Insights (public pages only, Vercel builds only).
+ * @prop theme        Signed-in theme choice from the profile; applied before first paint (no flash).
  * Slot `head`: extra elements for <head> (e.g. structured data).
  */
 import { Font } from 'astro:assets';
 import '../styles/global.css';
 import Analytics from '../components/site/Analytics.astro';
 import { defaultLocale, ogLocales, otherLocale, useTranslations, type Locale } from '../i18n';
-import { themeInitScript } from '../lib/theme';
+import { themeInitScript, type ThemePrefs } from '../lib/theme';
 
 interface Props {
   title: string;
@@ -22,9 +23,10 @@ interface Props {
   alternates?: Partial<Record<Locale, string>>;
   noindex?: boolean;
   analytics?: boolean;
+  theme?: ThemePrefs;
 }
 
-const { title, description, locale, alternates, noindex = false, analytics = false } = Astro.props;
+const { title, description, locale, alternates, noindex = false, analytics = false, theme } = Astro.props;
 const t = useTranslations(locale);
 const site = Astro.site ?? new URL(Astro.url.origin);
 const canonical = new URL(Astro.url.pathname, site).href;
@@ -37,7 +39,7 @@ const ogImage = new URL(`/og/og-${locale}.png`, site).href;
 ---
 
 <!doctype html>
-<html lang={locale}>
+<html lang={locale} data-pref={theme?.mode} data-day={theme?.day} data-night={theme?.night}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />

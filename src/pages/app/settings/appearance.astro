@@ -1,0 +1,392 @@
+---
+/**
+ * Settings › Appearance: mode (light / dark / system) and a day and a night theme (blue, red, green).
+ * Each choice applies to the whole page at once (`applyPrefs`) and is saved to the profile
+ * (`PATCH /api/profile`), so it follows the user to every device and is painted before first paint there.
+ * Previews use the real palettes through `[data-theme-scope]` (tokens.css). Needs JS to save; without it
+ * the page still shows the saved choice.
+ */
+import Card from '../../../components/ui/Card.astro';
+import Segmented from '../../../components/ui/Segmented.astro';
+import SettingsLayout from '../../../layouts/SettingsLayout.astro';
+import { useTranslations, type UiKey } from '../../../i18n';
+import { formatMoney } from '../../../lib/money';
+import { accents, type Accent } from '../../../lib/theme';
+
+const { profile } = Astro.locals;
+if (!profile) throw new Error('Signed-in page');
+const locale = profile.locale;
+const t = useTranslations(locale);
+
+const amount = formatMoney(48_760, locale, { currency: profile.currency });
+const accentName: Record<Accent, UiKey> = {
+  blue: 'appearance.blue',
+  red: 'appearance.red',
+  green: 'appearance.green',
+};
+
+// The server cannot see the OS setting: with "system" it assumes light, and the script corrects it at once.
+const resolved = profile.mode === 'dark' ? 'dark' : 'light';
+const initialNote = {
+  light: t('appearance.fixedLight'),
+  dark: t('appearance.fixedDark'),
+  system: t('appearance.systemLight'),
+}[profile.mode];
+
+const slots = [
+  {
+    name: 'themeDay',
+    mode: 'light',
+    value: profile.themeDay,
+    title: t('appearance.dayTitle'),
+    lead: t('appearance.dayLead'),
+    status: resolved === 'light' ? t('appearance.activeNow') : t('appearance.usedInLight'),
+  },
+  {
+    name: 'themeNight',
+    mode: 'dark',
+    value: profile.themeNight,
+    title: t('appearance.nightTitle'),
+    lead: t('appearance.nightLead'),
+    status: resolved === 'dark' ? t('appearance.activeNow') : t('appearance.usedInDark'),
+  },
+] as const;
+---
+
+<SettingsLayout current="appearance">
+  <h1>{t('settings.appearance')}</h1>
+
+  <div
+    class="appearance"
+    data-appearance
+    data-note-light={t('appearance.fixedLight')}
+    data-note-dark={t('appearance.fixedDark')}
+    data-note-system-light={t('appearance.systemLight')}
+    data-note-system-dark={t('appearance.systemDark')}
+    data-active={t('appearance.activeNow')}
+    data-used-light={t('appearance.usedInLight')}
+    data-used-dark={t('appearance.usedInDark')}
+    data-save-error={t('app.themeSaveError')}
+  >
+    <Card as="section" class="section" aria-labelledby="mode-title">
+      <h2 class="section__title" id="mode-title">
+        {t('appearance.modeTitle')}
+      </h2>
+      <p class="section__lead">{t('appearance.modeLead')}</p>
+      <Segmented
+        legend={t('appearance.modeTitle')}
+        name="mode"
+        value={profile.mode}
+        options={[
+          { value: 'light', label: t('appearance.light'), icon: 'sun' },
+          { value: 'dark', label: t('appearance.dark'), icon: 'moon' },
+          { value: 'system', label: t('appearance.system'), icon: 'monitor' },
+        ]}
+      />
+      <p class="note" data-mode-note aria-live="polite">
+        {initialNote}
+      </p>
+    </Card>
+
+    {slots.map((slot) => (
+      <Card as="section" class="section">
+        <fieldset class="themes">
+          <legend class="section__title">{slot.title}</legend>
+          <p class="section__lead">{slot.lead}</p>
+          <div class="themes__grid">
+            {accents.map((accent) => (
+              <label class="theme-card">
+                <span
+                  class="preview"
+                  data-theme-scope
+                  data-mode={slot.mode}
+                  data-accent={accent}
+                  aria-hidden="true"
+                >
+                  <span class="preview__header">
+                    <span class="preview__dot" />
+                    <span class="preview__line" />
+                  </span>
+                  <span class="preview__hero">{amount}</span>
+                  <span class="preview__bars">
+                    <span class="preview__bar" />
+                    <span class="preview__bar preview__bar--short" />
+                  </span>
+                </span>
+                <span class="theme-card__foot">
+                  <input type="radio" name={slot.name} value={accent} checked={slot.value === accent} />
+                  <span class="theme-card__name">
+                    {t(accentName[accent])}
+                    {accent === 'blue' && <span class="theme-card__default">{t('appearance.default')}</span>}
+                  </span>
+                  <span
+                    class="badge badge--accent theme-card__status"
+                    data-status={slot.mode}
+                    hidden={slot.value !== accent}
+                  >
+                    {slot.status}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      </Card>
+    ))}
+  </div>
+</SettingsLayout>
+
+<script>
+  import { call } from '../../../lib/movements/client';
+  import { applyPrefs, parseAccent, parseMode, readPrefs, type ThemePrefs } from '../../../lib/theme';
+  import { showToast } from '../../../lib/toast';
+
+  const panel = document.querySelector<HTMLElement>('[data-appearance]');
+  const root = document.documentElement;
+
+  /** Puts radios, the mode note and the status badges in step with what `<html>` shows now. */
+  function render(box: HTMLElement) {
+    const prefs = readPrefs();
+    if (!prefs) return;
+    const resolved = root.dataset['mode'] === 'dark' ? 'dark' : 'light';
+    const values: Record<string, string> = { mode: prefs.mode, themeDay: prefs.day, themeNight: prefs.night };
+    for (const input of box.querySelectorAll<HTMLInputElement>('input[type="radio"]')) {
+      input.checked = values[input.name] === input.value;
+    }
+    const note = box.querySelector<HTMLElement>('[data-mode-note]');
+    const key =
+      prefs.mode === 'system'
+        ? resolved === 'dark'
+          ? 'noteSystemDark'
+          : 'noteSystemLight'
+        : `note${prefs.mode === 'dark' ? 'Dark' : 'Light'}`;
+    if (note) note.textContent = box.dataset[key] ?? '';
+    for (const badge of box.querySelectorAll<HTMLElement>('[data-status]')) {
+      const mode = badge.dataset['status'];
+      const input = badge.closest('label')?.querySelector<HTMLInputElement>('input');
+      badge.hidden = !input?.checked;
+      badge.textContent =
+        (mode === resolved
+          ? box.dataset['active']
+          : box.dataset[mode === 'dark' ? 'usedDark' : 'usedLight']) ?? '';
+    }
+  }
+
+  if (panel) {
+    // One save at a time, in order: a quick second click can never be overwritten by the first.
+    let saving: Promise<unknown> = Promise.resolve();
+
+    panel.addEventListener('change', (event) => {
+      const input = event.target;
+      const prefs = readPrefs();
+      if (!(input instanceof HTMLInputElement) || !prefs) return;
+      const next: ThemePrefs = { ...prefs };
+      if (input.name === 'mode') next.mode = parseMode(input.value);
+      else if (input.name === 'themeDay') next.day = parseAccent(input.value);
+      else if (input.name === 'themeNight') next.night = parseAccent(input.value);
+      else return;
+      applyPrefs(next);
+      render(panel);
+      document.dispatchEvent(new CustomEvent('suvaro:theme'));
+      saving = saving
+        .then(() => call('PATCH', '/api/profile', { [input.name]: input.value }))
+        .catch(() => showToast(panel.dataset['saveError'] ?? ''));
+    });
+
+    // The header/dock toggle and OS changes (mode "system") repaint the page; follow them here too.
+    document.addEventListener('suvaro:theme', () => render(panel));
+    render(panel);
+  }
+</script>
+
+<style>
+  .appearance {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .appearance :global(.section) {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .section__title {
+    padding: 0;
+    font-family: var(--font-ui);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.3;
+  }
+
+  /* A legend sits outside the fieldset's grid, so the grid gap does not reach it. */
+  legend.section__title {
+    margin-block-end: var(--space-4);
+  }
+
+  .section__lead,
+  .note {
+    color: var(--ink-2);
+  }
+
+  .appearance :global(.segmented) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .themes {
+    display: grid;
+    gap: var(--space-4);
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .themes__grid {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .theme-card {
+    display: grid;
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--space-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    cursor: pointer;
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .theme-card:hover {
+    border-color: var(--ink-3);
+  }
+
+  .theme-card:has(input:checked) {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+
+  .theme-card:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .preview {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background-color: var(--bg);
+    background-image: radial-gradient(var(--dot) 1px, transparent 1.3px);
+    background-size: 10px 10px;
+    color: var(--ink);
+  }
+
+  .preview__header {
+    display: flex;
+    gap: var(--space-1);
+    align-items: center;
+    height: 0.875rem;
+    padding-inline: var(--space-1);
+    border-radius: 3px;
+    background: var(--surface);
+  }
+
+  .preview__dot {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+
+  .preview__line {
+    width: 40%;
+    height: 0.25rem;
+    border-radius: 2px;
+    background: var(--line);
+  }
+
+  .preview__hero {
+    padding: var(--space-2);
+    border-radius: var(--radius-s);
+    background: var(--hero-bg);
+    color: var(--hero-ink);
+    font-family: var(--font-display);
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: var(--tracking-number);
+    white-space: nowrap;
+  }
+
+  .preview__bars {
+    display: grid;
+    gap: 3px;
+  }
+
+  .preview__bar {
+    height: 0.3125rem;
+    border-radius: var(--radius-track);
+    background: var(--accent);
+  }
+
+  .preview__bar--short {
+    width: 60%;
+    background: var(--accent-soft);
+  }
+
+  .theme-card__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .theme-card__foot input {
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0;
+    accent-color: var(--accent);
+  }
+
+  .theme-card__name {
+    display: grid;
+    flex: 1;
+    font-weight: 500;
+  }
+
+  .theme-card__default {
+    color: var(--ink-2);
+    font-size: 0.8125rem;
+    font-weight: 400;
+  }
+
+  .theme-card__status[hidden] {
+    display: none;
+  }
+
+  @media (min-width: 40rem) {
+    .themes__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .theme-card {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+      padding: var(--space-3);
+    }
+
+    .preview {
+      gap: var(--space-3);
+      padding: var(--space-3);
+    }
+
+    .preview__hero {
+      font-size: 1.125rem;
+    }
+  }
+</style>

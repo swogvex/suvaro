@@ -1,8 +1,9 @@
 ---
 /**
  * Light/dark toggle for the app (sun/moon icon button). Used in the mobile dock and the desktop header.
- * The choice is kept in localStorage (saved to the profile with Settings › Appearance later) and the
+ * Signed in (always, in the app) the choice is saved to the profile and leaves "system" (spec); the
  * browser UI color (theme-color) follows it. Hidden until its script runs (it needs JS).
+ * Also keeps the page in step with the OS while the saved mode is "system".
  * @prop locale  Profile language.
  * @prop class   Extra classes for the button.
  */
@@ -24,6 +25,7 @@ const t = useTranslations(locale);
   data-theme-toggle
   data-label-dark={t('app.themeToDark')}
   data-label-light={t('app.themeToLight')}
+  data-save-error={t('app.themeSaveError')}
   aria-label={t('app.themeToDark')}
   hidden
 >
@@ -32,7 +34,9 @@ const t = useTranslations(locale);
 </button>
 
 <script>
-  import { MODE_STORAGE_KEY, syncThemeColor } from '../../lib/theme';
+  import { call } from '../../lib/movements/client';
+  import { applyPrefs, followSystemMode, MODE_STORAGE_KEY, readPrefs, syncThemeColor } from '../../lib/theme';
+  import { showToast } from '../../lib/toast';
 
   const root = document.documentElement;
   const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')];
@@ -48,19 +52,40 @@ const t = useTranslations(locale);
     syncThemeColor();
   }
 
+  /** Signed in: apply at once, then save; a failed save keeps the choice for this page and says so. */
+  async function save(button: HTMLButtonElement, mode: 'light' | 'dark') {
+    const prefs = readPrefs();
+    if (!prefs) return;
+    applyPrefs({ ...prefs, mode });
+    try {
+      await call('PATCH', '/api/profile', { mode });
+    } catch {
+      showToast(button.dataset['saveError'] ?? '');
+    }
+  }
+
   for (const button of buttons) {
     button.addEventListener('click', () => {
       const next = root.dataset['mode'] === 'dark' ? 'light' : 'dark';
-      root.dataset['mode'] = next;
-      try {
-        localStorage.setItem(MODE_STORAGE_KEY, next);
-      } catch {
-        // Storage blocked: the choice applies to this page only.
+      if (readPrefs()) {
+        void save(button, next);
+      } else {
+        root.dataset['mode'] = next;
+        try {
+          localStorage.setItem(MODE_STORAGE_KEY, next);
+        } catch {
+          // Storage blocked: the choice applies to this page only.
+        }
       }
       sync();
+      document.dispatchEvent(new CustomEvent('suvaro:theme'));
     });
     button.hidden = false;
   }
+  followSystemMode(() => {
+    sync();
+    document.dispatchEvent(new CustomEvent('suvaro:theme'));
+  });
   sync();
 </script>
 

@@ -1,0 +1,221 @@
+---
+/**
+ * Settings › Preferences: currency (format and symbol only, never a conversion), language, first day of
+ * the week and the day the month (cycle) starts. One Save; only changed fields are sent to
+ * `PATCH /api/profile`. A language change reloads the page so everything switches at once.
+ */
+import CurrencySelect from '../../../components/app/CurrencySelect.astro';
+import Card from '../../../components/ui/Card.astro';
+import Icon from '../../../components/ui/Icon.astro';
+import Segmented from '../../../components/ui/Segmented.astro';
+import SettingsLayout from '../../../layouts/SettingsLayout.astro';
+import { dictionaries, locales, useTranslations } from '../../../i18n';
+import { formatMoney } from '../../../lib/money';
+import { appPaths } from '../../../lib/routes';
+
+const { profile } = Astro.locals;
+if (!profile) throw new Error('Signed-in page');
+const locale = profile.locale;
+const t = useTranslations(locale);
+const example = `${formatMoney(121_240, locale, { currency: profile.currency })} · ${new Intl.DateTimeFormat(
+  locale,
+  { dateStyle: 'medium', timeZone: profile.timezone },
+).format(new Date())}`;
+const days = Array.from({ length: 28 }, (_, i) => i + 1);
+---
+
+<SettingsLayout current="preferences">
+  <h1>{t('settings.preferences')}</h1>
+
+  <Card as="section" class="prefs-card" aria-label={t('settings.preferences')}>
+    <form
+      class="prefs"
+      data-preferences
+      data-reload={`${appPaths.preferences}?done=saved`}
+      data-saved={t('settings.saved')}
+      data-error={t('settings.saveError')}
+      novalidate
+    >
+      <div class="field">
+        <label class="field__label" for="currency">
+          {t('preferences.currency')}
+        </label>
+        <CurrencySelect
+          locale={locale}
+          value={profile.currency}
+          id="currency"
+          name="currency"
+          data-initial={profile.currency}
+          aria-describedby="currency-note"
+        />
+        <p class="field__hint note" id="currency-note" data-currency-note hidden>
+          <Icon name="alert" />
+          {t('preferences.currencyNote')}
+        </p>
+      </div>
+
+      <fieldset class="segmented-group" data-initial={profile.locale}>
+        <legend class="field__label">{t('preferences.language')}</legend>
+        <div class="segmented">
+          {locales.map((code) => (
+            <label class="segmented__item" lang={code}>
+              <input type="radio" name="locale" value={code} checked={profile.locale === code} />
+              <span>{dictionaries[code]['lang.name']}</span>
+            </label>
+          ))}
+        </div>
+        <p class="field__hint">{t('preferences.formatNote', { example })}</p>
+      </fieldset>
+
+      <Segmented
+        legend={t('preferences.weekStart')}
+        name="weekStart"
+        value={String(profile.weekStart)}
+        data-initial={String(profile.weekStart)}
+        showLegend
+        options={[
+          { value: '1', label: t('preferences.monday') },
+          { value: '7', label: t('preferences.sunday') },
+        ]}
+      />
+
+      <div class="field">
+        <label class="field__label" for="cycle-start">
+          {t('preferences.cycleStart')}
+        </label>
+        <select
+          class="field__input cycle-start"
+          id="cycle-start"
+          name="cycleStartDay"
+          data-initial={String(profile.cycleStartDay)}
+          aria-describedby="cycle-start-hint"
+        >
+          {days.map((day) => (
+            <option value={day} selected={profile.cycleStartDay === day}>
+              {day}
+            </option>
+          ))}
+        </select>
+        <p class="field__hint" id="cycle-start-hint">
+          {t('preferences.cycleStartHint')}
+        </p>
+      </div>
+
+      <button class="btn btn--primary prefs__save" type="submit">
+        {t('settings.save')}
+      </button>
+    </form>
+  </Card>
+</SettingsLayout>
+
+<script>
+  import { call } from '../../../lib/movements/client';
+  import { showToast } from '../../../lib/toast';
+
+  const form = document.querySelector<HTMLFormElement>('[data-preferences]');
+
+  /** The value each setting had when the page loaded (or was last saved). */
+  function initial(name: string): string | undefined {
+    const field = form?.elements.namedItem(name);
+    if (field instanceof HTMLSelectElement) return field.dataset['initial'];
+    return form?.querySelector<HTMLElement>(`[data-initial]:has(input[name="${name}"])`)?.dataset['initial'];
+  }
+
+  function current(name: string): string {
+    const field = form?.elements.namedItem(name);
+    if (field instanceof HTMLSelectElement) return field.value;
+    return form?.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)?.value ?? '';
+  }
+
+  if (form) {
+    const note = form.querySelector<HTMLElement>('[data-currency-note]');
+    form.addEventListener('change', () => {
+      if (note) note.hidden = current('currency') === initial('currency');
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const changes: Record<string, string | number> = {};
+      for (const name of ['currency', 'locale', 'weekStart', 'cycleStartDay']) {
+        const value = current(name);
+        if (value === initial(name)) continue;
+        changes[name] = name === 'weekStart' || name === 'cycleStartDay' ? Number(value) : value;
+      }
+      if (Object.keys(changes).length === 0) {
+        showToast(form.dataset['saved'] ?? '');
+        return;
+      }
+      const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (submit) submit.disabled = true;
+      try {
+        await call('PATCH', '/api/profile', changes);
+        // Language, currency or cycle change most of what the app shows: reload in the new settings.
+        location.assign(form.dataset['reload'] ?? location.pathname);
+      } catch {
+        showToast(form.dataset['error'] ?? '');
+        if (submit) submit.disabled = false;
+      }
+    });
+  }
+</script>
+
+<style>
+  .prefs {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .prefs fieldset {
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .prefs fieldset > legend {
+    padding: 0;
+    margin-block-end: var(--space-2);
+  }
+
+  .prefs :global(.segmented) {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+  }
+
+  /* Desktop: two settings per row, so the card has no empty right half. */
+  @media (min-width: 48rem) {
+    .prefs {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-6) var(--space-8);
+      align-items: start;
+    }
+
+    .prefs__save {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .note {
+    display: flex;
+    gap: var(--space-2);
+    align-items: flex-start;
+    color: var(--warning);
+  }
+
+  .note[hidden] {
+    display: none;
+  }
+
+  .note :global(svg) {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    margin-block-start: 2px;
+  }
+
+  .prefs__save {
+    justify-self: start;
+    min-width: 8rem;
+  }
+</style>

@@ -15,6 +15,11 @@
   const R = 30;
   const C = 2 * Math.PI * R;
   const filled = $derived((Math.min(Math.max(pct, 0), 100) / 100) * C);
+  /** Room inside the stroke: 53 px. "100 %" at 15 px is ~50 px wide and touched the ring, so 3+ digits
+   * get a smaller size (never under 12 px), and very long values are squeezed to fit (textLength). */
+  const digits = $derived(String(pct).length);
+  const fontSize = $derived(digits <= 2 ? 15 : 12);
+  const squeeze = $derived(digits >= 4 ? 44 : undefined);
 </script>
 
 <svg class="ring" viewBox="0 0 72 72" width={size} height={size} role="img" aria-label={label}>
@@ -29,7 +34,16 @@
       transform="rotate(-90 36 36)"
     />
   {/if}
-  <text class="ring__text num" x="36" y="36" text-anchor="middle" dominant-baseline="central">{pct} %</text>
+  <text
+    class="ring__text num"
+    x="36"
+    y="36"
+    text-anchor="middle"
+    dominant-baseline="central"
+    font-size={fontSize}
+    textLength={squeeze}
+    lengthAdjust={squeeze ? 'spacingAndGlyphs' : undefined}>{pct} %</text
+  >
 </svg>
 
 <style>
@@ -54,6 +68,5 @@
 
   .ring__text {
     fill: var(--ink);
-    font-size: 15px;
   }
 </style>

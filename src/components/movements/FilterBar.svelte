@@ -282,7 +282,7 @@
         {/if}
       </fieldset>
 
-      <div class="filters__actions">
+      <div class="btn-group filters__actions">
         {#if hasFilters(filters)}
           <button class="btn btn--ghost" type="button" onclick={() => onchange(emptyFilters)}
             >{t('filters.clear')}</button
@@ -374,9 +374,8 @@
   }
 
   .filters__actions {
-    display: flex;
-    gap: var(--space-2);
-    justify-content: flex-end;
+    justify-self: end;
+    margin-inline-start: auto;
   }
 
   .filters__active .chip {

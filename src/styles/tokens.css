@@ -26,8 +26,11 @@
 
   /* motion */
   --dur-fast: 120ms; --dur: 200ms; --ease: cubic-bezier(.2, .7, .2, 1);
+}
 
-  /* LIGHT · BLUE (base) */
+/* LIGHT · BLUE (base). `[data-theme-scope]` lets an element show another palette than the page
+   (Settings › Appearance previews): it carries its own data-mode and data-accent. */
+:root, [data-theme-scope] {
   --bg: #F6F3EE; --dot: #D6CFC2; --surface: #FFFFFF; --surface-2: #F2EDE5; --line: #E6E0D5;
   --ink: #211F1C; --ink-2: #56524C; --ink-3: #69645C;
   --accent: #4A44D1; --accent-strong: #2E29A3; --on-accent: #FFFFFF; --accent-soft: #E5E3FF;
@@ -57,7 +60,7 @@
     color-scheme: dark;
   }
 }
-:root[data-mode="dark"] {
+:root[data-mode="dark"], [data-theme-scope][data-mode="dark"] {
   --bg: #12141C; --dot: #272B3A; --surface: #1A1D28; --surface-2: #232835; --line: #323849;
   --ink: #F3F0EA; --ink-2: #BCB7C4; --ink-3: #A39EAD;
   --accent: #93A8FF; --accent-strong: #6A82E6; --on-accent: #12141C; --accent-soft: #252D54;
@@ -70,25 +73,29 @@
 }
 
 /* LIGHT · RED */
-:root[data-mode="light"][data-accent="red"] {
+:root[data-mode="light"][data-accent="red"],
+[data-theme-scope][data-mode="light"][data-accent="red"] {
   --bg: #F8F1EF; --dot: #DCC9C4; --surface-2: #F4EAE7; --line: #EADBD6;
   --accent: #C3303D; --accent-strong: #8E1F2A; --on-accent: #FFFFFF; --accent-soft: #FCE1E3;
   --hero-bg: #FFD6DA; --hero-line: #F6BBC1;
 }
 /* LIGHT · GREEN */
-:root[data-mode="light"][data-accent="green"] {
+:root[data-mode="light"][data-accent="green"],
+[data-theme-scope][data-mode="light"][data-accent="green"] {
   --bg: #F1F5EF; --dot: #C9D5C4; --surface-2: #E9F0E6; --line: #DCE5D7;
   --accent: #1E7A4C; --accent-strong: #135435; --on-accent: #FFFFFF; --accent-soft: #DBF1E3;
   --hero-bg: #CBEED7; --hero-line: #A8DEBB;
 }
 /* DARK · RED */
-:root[data-mode="dark"][data-accent="red"] {
+:root[data-mode="dark"][data-accent="red"],
+[data-theme-scope][data-mode="dark"][data-accent="red"] {
   --bg: #1A1314; --dot: #352A2C; --surface: #241B1C; --surface-2: #2F2426; --line: #413335;
   --accent: #FF8C95; --accent-strong: #D9616C; --on-accent: #1A1314; --accent-soft: #46252A;
   --hero-bg: #4B232A; --hero-line: #6C343C;
 }
 /* DARK · GREEN */
-:root[data-mode="dark"][data-accent="green"] {
+:root[data-mode="dark"][data-accent="green"],
+[data-theme-scope][data-mode="dark"][data-accent="green"] {
   --bg: #101813; --dot: #27332B; --surface: #17211B; --surface-2: #202C24; --line: #2E3C33;
   --accent: #72DCA2; --accent-strong: #4AB57D; --on-accent: #0E1611; --accent-soft: #1E3A2A;
   --hero-bg: #1E3D2C; --hero-line: #2D5A41;
