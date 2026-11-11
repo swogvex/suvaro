@@ -490,8 +490,10 @@
     align-items: start;
   }
 
+  /* align-content: start keeps the heading at the top when the column is stretched to the other's height. */
   .plan__col {
     display: grid;
+    align-content: start;
     gap: var(--space-4);
     min-width: 0;
   }

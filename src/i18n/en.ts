@@ -66,6 +66,8 @@ export const en = {
   'signIn.tipPasskeyTitle': 'What’s a passkey?',
   'signIn.tipPasskey':
     'Your phone or computer unlocks Suvaro with your fingerprint, face or screen lock. Nothing to remember and nothing to leak.',
+  'signIn.tipNextTitle': 'What happens next?',
+  'signIn.tipNext': 'Three quick steps: currency, income and categories. About a minute.',
   'signIn.tipCodeTitle': 'Can’t find the email?',
   'signIn.tipCode': 'It can take a minute. Check your spam or promotions folder, or send a new code.',
   'signIn.modeLabel': 'What do you want to do?',

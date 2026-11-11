@@ -347,12 +347,19 @@
     </form>
 
     <!-- The tip fills the space the error would take, so the card keeps one height with or without it. -->
-    {#if mode === 'sign-in' && !error}
+    {#if !error}
       <aside class="sign-in__tip" aria-labelledby="sign-in-tip-title">
-        <h3 class="sign-in__tip-title" id="sign-in-tip-title">
-          <Icon name="key" />{t('signIn.tipPasskeyTitle')}
-        </h3>
-        <p>{t('signIn.tipPasskey')}</p>
+        {#if mode === 'sign-in'}
+          <h3 class="sign-in__tip-title" id="sign-in-tip-title">
+            <Icon name="key" />{t('signIn.tipPasskeyTitle')}
+          </h3>
+          <p>{t('signIn.tipPasskey')}</p>
+        {:else}
+          <h3 class="sign-in__tip-title" id="sign-in-tip-title">
+            <Icon name="arrow-right" />{t('signIn.tipNextTitle')}
+          </h3>
+          <p>{t('signIn.tipNext')}</p>
+        {/if}
       </aside>
     {/if}
   {:else}
