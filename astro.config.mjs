@@ -3,6 +3,7 @@ import { defineConfig, envField, fontProviders } from 'astro/config';
 import node from '@astrojs/node';
 import svelte from '@astrojs/svelte';
 import vercel from '@astrojs/vercel';
+import { demoQueueScriptHash } from './src/lib/demo-csp.ts';
 import { themeInitScriptHash } from './src/lib/theme-csp.ts';
 
 // CI and local e2e run a plain Node server; Vercel builds use the Vercel adapter.
@@ -61,8 +62,9 @@ export default defineConfig({
         "frame-ancestors 'none'",
       ],
       // The inline theme script runs before first paint on every page; its hash is allowed globally
-      // (Astro.csp.insertScriptHash does not reach the static headers of prerendered pages).
-      scriptDirective: { resources: ["'self'"], hashes: [themeInitScriptHash] },
+      // (Astro.csp.insertScriptHash does not reach the static headers of prerendered pages). The demo's
+      // inline fetch queue is allowed the same way.
+      scriptDirective: { resources: ["'self'"], hashes: [themeInitScriptHash, demoQueueScriptHash] },
       styleDirective: { resources: ["'self'"] },
     },
   },

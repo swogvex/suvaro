@@ -1,0 +1,214 @@
+---
+/**
+ * One page of the demo: the same islands as the app, with first-paint data computed from the sample state
+ * (`buildDemoState`, relative to today) instead of the database. The query string works like in the app
+ * (`?cycle=` on Home, the filters on Movements, the period on Stats).
+ * @prop locale  Demo language.
+ * @prop view    Which page (`demoViews`).
+ */
+import HomeDashboard from '../home/HomeDashboard.svelte';
+import MovementCalendar from '../movements/MovementCalendar.svelte';
+import MovementList from '../movements/MovementList.svelte';
+import MovementsHead from '../movements/MovementsHead.astro';
+import RecurringView from '../movements/RecurringView.svelte';
+import PlanDashboard from '../plan/PlanDashboard.svelte';
+import StatsDashboard from '../stats/StatsDashboard.svelte';
+import Card from '../ui/Card.astro';
+import Icon from '../ui/Icon.astro';
+import DemoLayout from '../../layouts/DemoLayout.astro';
+import { pickMessages, useTranslations, type Locale } from '../../i18n';
+import { isIsoMonth, isTimeZone, monthOf, todayIn } from '../../lib/dates';
+import { buildDemoState } from '../../lib/demo/fixture';
+import {
+  categoryOptions,
+  firstMonthPage,
+  homeData,
+  monthPage,
+  planData,
+  recurringData,
+  statsData,
+} from '../../lib/demo/store';
+import type { DemoView } from '../../lib/demo/views';
+import { chooseCycle } from '../../lib/home/cycle-param';
+import { filtersToParams, parseFilters } from '../../lib/movements/filters';
+import { signInPath } from '../../lib/routes';
+import { choosePeriod } from '../../lib/stats/period';
+
+interface Props {
+  locale: Locale;
+  view: DemoView;
+}
+
+const { locale, view } = Astro.props;
+const t = useTranslations(locale);
+const zone = Astro.request.headers.get('x-vercel-ip-timezone') ?? '';
+const today = todayIn(isTimeZone(zone) ? zone : 'Europe/Madrid');
+const state = buildDemoState(today, locale);
+const categories = categoryOptions(state);
+const common = { locale, currency: state.currency, today, categories };
+const params = Astro.url.searchParams;
+const { filters } = parseFilters(params);
+const settings = { startDay: state.startDay, weekStart: state.weekStart };
+const counts = { recurring: state.recurring.length, pending: state.pending.length };
+
+const cycleChoice =
+  chooseCycle(params.get('cycle'), state.startDay, today) ?? chooseCycle(null, state.startDay, today);
+const periodChoice =
+  choosePeriod(params, settings, today) ?? choosePeriod(new URLSearchParams(), settings, today);
+const requestedMonth = params.get('month') ?? '';
+const calendarMonth = isIsoMonth(requestedMonth) ? requestedMonth : monthOf(today);
+
+const titles: Record<DemoView, string> = {
+  '': t('app.home'),
+  movements: t('app.movements'),
+  'movements/calendar': t('movements.calendar'),
+  'movements/recurring': t('recurring.view'),
+  stats: t('app.stats'),
+  plan: t('app.plan'),
+  settings: t('app.settings'),
+};
+const section =
+  view === '' ? 'home' : view.startsWith('movements') ? 'movements' : (view as 'stats' | 'plan' | 'settings');
+---
+
+<DemoLayout title={titles[view]} section={section} state={state} view={view}>
+  {view === '' && cycleChoice && (
+    <HomeDashboard
+      client:load
+      initial={homeData(state, cycleChoice.cycle, cycleChoice.previousCycle)}
+      current={cycleChoice.current}
+      startDay={state.startDay}
+      name={state.name}
+      messages={pickMessages(locale, [
+        'home.',
+        'movements.income',
+        'movements.noCategory',
+        'movements.recurring',
+      ])}
+      {...common}
+    />
+  )}
+
+  {view === 'movements' && (
+    <>
+      <MovementsHead
+        view="list"
+        query={filtersToParams(filters).toString()}
+        locale={locale}
+        counts={counts}
+      />
+      <MovementList
+        client:load
+        initial={firstMonthPage(state, filters)}
+        filters={filters}
+        messages={pickMessages(locale, ['movements.', 'filters.', 'editor.income', 'editor.expense'])}
+        {...common}
+      />
+    </>
+  )}
+
+  {view === 'movements/calendar' && (
+    <>
+      <MovementsHead
+        view="calendar"
+        query={filtersToParams(filters).toString()}
+        locale={locale}
+        counts={counts}
+      />
+      <MovementCalendar
+        client:load
+        initial={monthPage(state, filters, calendarMonth).items}
+        month={calendarMonth}
+        filters={filters}
+        weekStart={state.weekStart}
+        messages={pickMessages(locale, [
+          'movements.',
+          'filters.',
+          'calendar.',
+          'editor.income',
+          'editor.expense',
+        ])}
+        {...common}
+      />
+    </>
+  )}
+
+  {view === 'movements/recurring' && (
+    <>
+      <MovementsHead view="recurring" query="" locale={locale} counts={counts} />
+      <RecurringView
+        client:load
+        initial={recurringData(state)}
+        messages={pickMessages(locale, [
+          'recurring.',
+          'editor.type',
+          'editor.expense',
+          'editor.income',
+          'editor.amount',
+          'editor.category',
+          'movements.income',
+          'movements.noCategory',
+        ])}
+        {...common}
+      />
+    </>
+  )}
+
+  {view === 'stats' && periodChoice && (
+    <StatsDashboard
+      client:load
+      initial={statsData(state, periodChoice)}
+      startDay={state.startDay}
+      weekStart={state.weekStart}
+      messages={pickMessages(locale, ['stats.', 'app.stats', 'movements.noCategory'])}
+      {...common}
+    />
+  )}
+
+  {view === 'plan' && (
+    <PlanDashboard
+      client:load
+      initial={planData(state)}
+      startDay={state.startDay}
+      messages={pickMessages(locale, ['plan.', 'app.plan', 'movements.noCategory'])}
+      {...common}
+    />
+  )}
+
+  {view === 'settings' && (
+    <>
+      <h1>{t('app.settings')}</h1>
+      <Card class="demo-settings">
+        <span class="demo-settings__icon" aria-hidden="true">
+          <Icon name="sliders" />
+        </span>
+        <p>{t('demo.settingsLead')}</p>
+        <a class="btn btn--primary" href={signInPath(locale, 'create')}>
+          {t('demo.create')}
+        </a>
+      </Card>
+    </>
+  )}
+</DemoLayout>
+
+<style>
+  .demo-settings {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+
+  .demo-settings__icon {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--radius-btn);
+    background: var(--accent-soft);
+  }
+
+  .demo-settings__icon :global(svg) {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+</style>

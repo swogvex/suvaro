@@ -1,0 +1,15 @@
+---
+/**
+ * Demo pages (en): the app with sample data, no account, no network calls (`DemoPage`). Rendered on
+ * request so the sample month always ends today. Unknown paths answer 404.
+ */
+import DemoPage from '../../components/demo/DemoPage.astro';
+import { isDemoView } from '../../lib/demo/views';
+
+export const prerender = false;
+
+const view = Astro.params['path'] ?? '';
+if (!isDemoView(view)) return new Response(null, { status: 404 });
+---
+
+<DemoPage locale="en" view={view} />

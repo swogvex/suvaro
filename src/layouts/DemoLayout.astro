@@ -1,0 +1,92 @@
+---
+/**
+ * Layout for the demo (`/demo`, `/es/demo`): the app frame (`AppShell`) filled from the sample state, a
+ * "nothing is saved" banner with "Create account", and the in-memory API. The inline queue in <head> holds
+ * every `/api/*` call until `startDemo` answers it from the state embedded in the page: no network request,
+ * nothing stored. noindex; system mode and blue, like other signed-out pages.
+ * @prop title    Page title.
+ * @prop section  Active section.
+ * @prop state    The sample data (also embedded for the browser).
+ * @prop view     The page within the demo (for the language switch).
+ */
+import AppShell from '../components/app/AppShell.astro';
+import Icon from '../components/ui/Icon.astro';
+import BaseLayout from './BaseLayout.astro';
+import { useTranslations } from '../i18n';
+import type { AppSection } from '../lib/app-nav';
+import { demoQueueScript } from '../lib/demo/queue';
+import { categoryOptions, type DemoState } from '../lib/demo/store';
+import { demoPath, demoPrefix, type DemoView } from '../lib/demo/views';
+import { signInPath } from '../lib/routes';
+
+interface Props {
+  title: string;
+  section: AppSection | 'settings';
+  state: DemoState;
+  view: DemoView;
+}
+
+const { title, section, state, view } = Astro.props;
+const locale = state.locale;
+const t = useTranslations(locale);
+const context = {
+  locale,
+  currency: state.currency,
+  today: state.today,
+  categories: categoryOptions(state),
+};
+const searchable = [{ label: t('app.settings'), href: demoPath(locale, 'settings') }];
+// `<` escaped so the JSON can never close its <script> element.
+const stateJson = JSON.stringify(state).replace(/</g, '\u003c');
+---
+
+<BaseLayout
+  title={`${title} · ${t('demo.title')} · Suvaro`}
+  description={t('demo.banner')}
+  locale={locale}
+  alternates={{ en: demoPath('en', view), es: demoPath('es', view) }}
+  noindex
+>
+  <Fragment slot="head">
+    <script is:inline set:html={demoQueueScript} />
+    <script is:inline type="application/json" id="demo-state" set:html={stateJson} />
+  </Fragment>
+  <AppShell locale={locale} section={section} avatar="leaf" context={context} searchable={searchable}>
+    <div class="banner banner--demo" slot="banner" data-demo-prefix={demoPrefix[locale]}>
+      <Icon name="sparkles" />
+      <p>{t('demo.banner')}</p>
+      <a class="btn btn--primary banner__action" href={signInPath(locale, 'create')}>
+        {t('demo.create')}
+      </a>
+    </div>
+    <slot />
+  </AppShell>
+</BaseLayout>
+
+<script>
+  import { startDemo } from '../lib/demo/client';
+
+  startDemo(document.querySelector<HTMLElement>('[data-demo-prefix]')?.dataset['demoPrefix'] ?? '/demo');
+</script>
+
+<style>
+  .banner--demo {
+    flex-wrap: wrap;
+    align-items: center;
+    border: 1px solid var(--line);
+    background: var(--accent-soft);
+  }
+
+  .banner--demo p {
+    flex: 1;
+    min-width: 12rem;
+  }
+
+  .banner--demo :global(svg) {
+    color: var(--ink);
+  }
+
+  .banner__action {
+    min-height: 2.5rem;
+  }
+</style>
