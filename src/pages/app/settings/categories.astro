@@ -1,0 +1,23 @@
+---
+/**
+ * Settings › Categories: the user's categories with this cycle's use, and the editor (island).
+ * Changes apply to the movement editor and filters on the next page load.
+ */
+import CategoriesEditor from '../../../components/settings/CategoriesEditor.svelte';
+import SettingsLayout from '../../../layouts/SettingsLayout.astro';
+import { pickMessages, useTranslations } from '../../../i18n';
+import { listCategoryRows } from '../../../lib/categories/repo';
+import { db } from '../../../lib/db';
+import { currentCycle } from '../../../lib/plan/notify';
+
+const { profile, user } = Astro.locals;
+if (!profile || !user) throw new Error('Signed-in page');
+const t = useTranslations(profile.locale);
+const rows = await listCategoryRows(db, user.id, currentCycle(profile));
+const messages = pickMessages(profile.locale, ['categories.', 'color.', 'catIcon.']);
+---
+
+<SettingsLayout current="categories">
+  <h1>{t('settings.categories')}</h1>
+  <CategoriesEditor client:load categories={rows} messages={messages} />
+</SettingsLayout>

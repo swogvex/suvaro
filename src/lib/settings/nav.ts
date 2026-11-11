@@ -3,7 +3,7 @@ import type { UiKey } from '../../i18n';
 import type { IconName } from '../icons';
 import { appPaths } from '../routes';
 
-export type SettingsSection = 'profile' | 'preferences' | 'appearance' | 'security';
+export type SettingsSection = 'profile' | 'preferences' | 'appearance' | 'categories' | 'security';
 
 export const settingsSections: readonly {
   key: SettingsSection;
@@ -36,6 +36,14 @@ export const settingsSections: readonly {
     lead: 'settings.appearanceLead',
     search: 'search.appearance',
     icon: 'palette',
+  },
+  {
+    key: 'categories',
+    href: appPaths.categories,
+    title: 'settings.categories',
+    lead: 'settings.categoriesLead',
+    search: 'search.categories',
+    icon: 'list',
   },
   {
     key: 'security',

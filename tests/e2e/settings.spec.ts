@@ -12,6 +12,7 @@ import {
   uniqueEmail,
   waitForIslands,
 } from './helpers';
+import { ulid } from '../../src/lib/id';
 
 test.beforeEach(async ({ context }) => {
   await context.setExtraHTTPHeaders({ 'x-forwarded-for': randomIp() });
@@ -261,3 +262,129 @@ test.describe('settings', () => {
     }
   });
 });
+
+test.describe('settings › categories', () => {
+  test('create, edit, a duplicate name and delete moving the movements', async ({ page }) => {
+    test.slow(); // sign-up, several saves and axe in 6 themes on the page and the dialog
+    const errors = collectErrors(page);
+    await newUser(page, 'categories');
+    await page.goto('/app/settings/categories');
+    await waitForIslands(page);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Categories');
+    await expect(page.getByText('12 of 50. Income has no category.')).toBeVisible();
+    await expectNoHorizontalScroll(page);
+    await expectNoAxeViolationsInThemes(page);
+
+    // New category.
+    await page.getByRole('button', { name: 'New category' }).click();
+    const dialog = page.getByRole('dialog', { name: 'New category' });
+    await expect(dialog.getByLabel('Name')).toBeFocused();
+    await dialog.getByLabel('Name').fill('Coffee');
+    await dialog.getByText('Coffee', { exact: true }).locator('..').locator('input').check();
+    await dialog.getByRole('radio', { name: 'Butter' }).check();
+    await expectNoAxeViolations(page);
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Category added.' })).toBeVisible();
+    await expect(page.getByRole('button', { name: editName('Coffee') })).toBeVisible();
+    await expect(page.getByText('13 of 50. Income has no category.')).toBeVisible();
+
+    // A name already used stays in the dialog with an error.
+    await page.getByRole('button', { name: editName('Coffee') }).click();
+    const edit = page.getByRole('dialog', { name: 'Edit category' });
+    await edit.getByLabel('Name').fill('food');
+    await edit.getByRole('button', { name: 'Save' }).click();
+    await expect(edit.getByText('You already have a category with that name.')).toBeVisible();
+    await edit.getByLabel('Name').fill('Coffee & tea');
+    await edit.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByRole('button', { name: editName('Coffee & tea') })).toBeVisible();
+
+    // Esc closes and returns focus.
+    await page.getByRole('button', { name: editName('Coffee & tea') }).click();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('button', { name: editName('Coffee & tea') })).toBeFocused();
+
+    // An expense in Food, then delete Food moving it to Coffee & tea.
+    const saved = await page.request.post('/api/movements', {
+      headers: { Origin: 'http://localhost:4321' },
+      data: {
+        id: ulid(),
+        type: 'expense',
+        amountCents: 450,
+        categoryId: await categoryId(page, 'Food'),
+        date: new Date().toISOString().slice(0, 10),
+        note: '',
+      },
+    });
+    expect(saved.status()).toBe(201);
+    await page.reload();
+    await waitForIslands(page);
+    await page.getByRole('button', { name: editName('Food') }).click();
+    await page.getByRole('dialog', { name: 'Edit category' }).getByRole('button', { name: 'Delete' }).click();
+    const remove = page.getByRole('dialog', { name: 'Delete Food?' });
+    await expect(remove.getByText('1 movements use it.')).toBeVisible();
+    await remove
+      .getByLabel('Move its movements and recurring ones to')
+      .selectOption({ label: 'Coffee & tea' });
+    await expectNoAxeViolations(page);
+    await remove.getByRole('button', { name: 'Delete' }).click();
+    await expect(
+      page.getByRole('status').filter({ hasText: 'Food deleted. Its movements are now in Coffee & tea.' }),
+    ).toBeVisible();
+    await expect(page.getByRole('button', { name: editName('Food') })).toHaveCount(0);
+    await page.reload();
+    await expect(
+      page.getByRole('button', { name: editName('Coffee & tea') }).getByText('1 this month'),
+    ).toBeVisible();
+    // The duplicate name answers 409 on purpose; the browser logs it.
+    expect(errors.filter((text) => !text.includes('409'))).toEqual([]);
+  });
+
+  test('another user’s category answers 404 and bad input 400', async ({ page }) => {
+    await newUser(page, 'cat-owner');
+    const id = await categoryId(page, 'Food');
+    const other = await newContextWithIp(page.context());
+    const otherPage = await other.newPage();
+    await newUser(otherPage, 'cat-intruder');
+    const h = { Origin: 'http://localhost:4321' };
+    const fields = { name: 'Mine now', icon: 'dots', color: 1 };
+    expect(
+      (
+        await otherPage.request.fetch(`/api/categories/${id}`, { method: 'PATCH', data: fields, headers: h })
+      ).status(),
+    ).toBe(404);
+    expect(
+      (
+        await otherPage.request.fetch(`/api/categories/${id}`, {
+          method: 'DELETE',
+          data: { moveTo: null },
+          headers: h,
+        })
+      ).status(),
+    ).toBe(404);
+    expect(
+      (
+        await page.request.post('/api/categories', {
+          data: { id: ulid(), name: 'X', icon: 'rocket', color: 1 },
+          headers: h,
+        })
+      ).status(),
+    ).toBe(400);
+    expect(
+      (
+        await page.request.fetch(`/api/categories/${id}`, { method: 'DELETE', data: {}, headers: h })
+      ).status(),
+    ).toBe(400);
+    await other.close();
+  });
+});
+
+/** A category row's accessible name: "Edit" (hidden), the name, then "n this month". */
+const editName = (name: string) => new RegExp(`^Edit ${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\d`);
+
+/** The id of one of the signed-in user's categories, read from the Categories page. */
+async function categoryId(page: Page, name: string): Promise<string> {
+  await page.goto('/app/settings/categories');
+  const id = await page.getByRole('button', { name: editName(name) }).getAttribute('data-id');
+  if (!id) throw new Error(`No category ${name}`);
+  return id;
+}

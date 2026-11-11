@@ -89,8 +89,10 @@
     overflow-wrap: anywhere;
   }
 
+  /* align-content: start — a short body on a full-height phone sheet keeps its rows at their size. */
   .sheet__body {
     display: grid;
+    align-content: start;
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-5);
     overflow-y: auto;
