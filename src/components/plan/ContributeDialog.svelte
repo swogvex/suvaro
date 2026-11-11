@@ -194,7 +194,7 @@
     {#if editing}
       <button class="btn btn--ghost" type="button" onclick={reset}>{t('plan.cancelEdit')}</button>
     {/if}
-    <button class="btn btn--primary btn--lg save" type="submit">
+    <button class="btn btn--primary" type="submit">
       {editing ? t('plan.save') : t('plan.contribute')}
     </button>
   {/snippet}
@@ -283,19 +283,9 @@
     color: var(--ink-2);
   }
 
-  .save {
-    min-width: 8rem;
-  }
-
   @media (max-width: 30rem) {
     .row {
       grid-template-columns: minmax(0, 1fr);
-    }
-  }
-
-  @media (max-width: 47.99rem) {
-    .save {
-      flex: 1;
     }
   }
 </style>

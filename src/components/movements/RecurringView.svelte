@@ -179,7 +179,7 @@
           <p class="pending__text">
             <Icon name="clock" />{t('recurring.pendingOne', pendingText(only))}
           </p>
-          <div class="pending__actions">
+          <div class="btn-group">
             <button class="btn btn--ghost" type="button" onclick={() => skip(only)}
               >{t('recurring.skip')}</button
             >
@@ -196,7 +196,7 @@
           {#each data.pending as item (item.id)}
             <li class="pending__row">
               <span>{t('recurring.pendingItem', pendingText(item))}</span>
-              <div class="pending__actions">
+              <div class="btn-group">
                 <button class="btn btn--ghost" type="button" onclick={() => skip(item)}>
                   {t('recurring.skip')}
                 </button>
@@ -374,12 +374,6 @@
   .pending__list .pending__row {
     padding-block-start: var(--space-2);
     border-block-start: 1px solid var(--line);
-  }
-
-  .pending__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
   }
 
   .summary {

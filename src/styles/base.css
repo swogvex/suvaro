@@ -233,3 +233,13 @@ a {
     padding: 0 !important;
   }
 }
+
+/* No visible scrollbars anywhere (owner, 2026-11-11): pages, dialogs and lists still scroll with touch,
+   wheel, trackpad and keyboard. Firefox/Chromium use scrollbar-width; Safari the ::-webkit-scrollbar rule. */
+* {
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}

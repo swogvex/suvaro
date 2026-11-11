@@ -139,7 +139,7 @@
   {/snippet}
 
   {#snippet footer()}
-    <button class="btn btn--primary btn--lg save" type="submit">{t('plan.save')}</button>
+    <button class="btn btn--primary" type="submit">{t('plan.save')}</button>
   {/snippet}
 </Dialog>
 
@@ -198,15 +198,5 @@
 
   .limits__error {
     grid-column: 2 / -1;
-  }
-
-  .save {
-    min-width: 8rem;
-  }
-
-  @media (max-width: 47.99rem) {
-    .save {
-      flex: 1;
-    }
   }
 </style>

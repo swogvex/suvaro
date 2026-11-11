@@ -384,28 +384,30 @@
             </button>
           {/if}
         </div>
-        {#if completed.length > 0}
-          <details class="done">
-            <summary class="done__summary">
-              <Icon name="chevron-down" />{t('plan.completed', { n: completed.length })}
-            </summary>
-            <div class="plan__list done__list">
-              {#each completed as goal (goal.id)}
-                <GoalItem
-                  {goal}
-                  {today}
-                  {locale}
-                  {currency}
-                  {t}
-                  oncontribute={(g) => contributeDialog?.open(g)}
-                  onedit={(g) => goalDialog?.open(g)}
-                />
-              {/each}
-            </div>
-          </details>
-        {/if}
       {/if}
     </section>
+
+    <!-- Its own grid row under Goals (not inside the column), so both columns' cards end level. -->
+    {#if data.goals.length > 0 && completed.length > 0}
+      <details class="done plan__done">
+        <summary class="done__summary">
+          <Icon name="chevron-down" />{t('plan.completed', { n: completed.length })}
+        </summary>
+        <div class="plan__list done__list">
+          {#each completed as goal (goal.id)}
+            <GoalItem
+              {goal}
+              {today}
+              {locale}
+              {currency}
+              {t}
+              oncontribute={(g) => contributeDialog?.open(g)}
+              onedit={(g) => goalDialog?.open(g)}
+            />
+          {/each}
+        </div>
+      </details>
+    {/if}
 
     <section class="plan__col plan__budgets" aria-labelledby="plan-budgets">
       <div class="plan__col-head">
@@ -486,7 +488,7 @@
 
   .plan__columns {
     display: grid;
-    gap: var(--space-8);
+    gap: var(--space-4) var(--space-8);
     align-items: start;
   }
 
@@ -532,6 +534,17 @@
       display: flex;
       flex: 1;
       flex-direction: column;
+    }
+
+    /* Before any limit, the budgets' empty card reaches down to the goals column's bottom edge. */
+    .plan__budgets {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .plan__budgets > :global(.empty) {
+      flex: 1;
+      align-content: center;
     }
 
     .add-goal {
@@ -600,7 +613,8 @@
   /* Phones and tablets: one column at a time, chosen with the segmented control. */
   @media (max-width: 59.99rem) {
     .plan[data-view='goals'] .plan__budgets,
-    .plan[data-view='budgets'] .plan__goals {
+    .plan[data-view='budgets'] .plan__goals,
+    .plan[data-view='budgets'] .plan__done {
       display: none;
     }
   }
@@ -612,6 +626,18 @@
 
     .plan__columns {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .plan__goals {
+      grid-area: 1 / 1;
+    }
+
+    .plan__budgets {
+      grid-area: 1 / 2;
+    }
+
+    .plan__done {
+      grid-area: 2 / 1;
     }
   }
 </style>

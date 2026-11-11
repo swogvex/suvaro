@@ -303,7 +303,7 @@
         <Icon name="trash" />{t('recurring.delete')}
       </button>
     {/if}
-    <button class="btn btn--primary btn--lg save" type="submit">{t('recurring.save')}</button>
+    <button class="btn btn--primary" type="submit">{t('recurring.save')}</button>
   {/snippet}
 </Dialog>
 
@@ -358,15 +358,5 @@
     display: grid;
     gap: var(--space-1);
     margin-block-start: calc(-1 * var(--space-2));
-  }
-
-  .save {
-    min-width: 8rem;
-  }
-
-  @media (max-width: 47.99rem) {
-    .save {
-      flex: 1;
-    }
   }
 </style>

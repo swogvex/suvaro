@@ -383,14 +383,16 @@
       </div>
 
       <footer class="editor__foot">
-        {#if editing}
-          <button class="btn btn--danger" type="button" onclick={remove}>
-            <Icon name="trash" />{t('editor.delete')}
+        <div class="editor__actions">
+          {#if editing}
+            <button class="btn btn--danger" type="button" onclick={remove}>
+              <Icon name="trash" />{t('editor.delete')}
+            </button>
+          {/if}
+          <button class="btn btn--primary" type="submit" disabled={!online}>
+            {t('editor.save')}
           </button>
-        {/if}
-        <button class="btn btn--primary btn--lg editor__save" type="submit" disabled={!online}>
-          {t('editor.save')}
-        </button>
+        </div>
       </footer>
     </form>
   {/if}
@@ -452,8 +454,12 @@
     border-top: 1px solid var(--line);
   }
 
-  .editor__save {
-    min-width: 8rem;
+  /* Same rule as the shared Dialog: footer buttons always share one size. */
+  .editor__actions {
+    display: inline-grid;
+    grid-auto-columns: minmax(8rem, 1fr);
+    grid-auto-flow: column;
+    gap: var(--space-3);
   }
 
   fieldset {
@@ -603,8 +609,10 @@
       padding-block-end: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
     }
 
-    .editor__save {
+    .editor__actions {
+      display: grid;
       flex: 1;
+      grid-auto-columns: minmax(0, 1fr);
     }
 
     @media (prefers-reduced-motion: no-preference) {

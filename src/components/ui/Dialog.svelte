@@ -41,7 +41,7 @@
       {@render body()}
     </div>
     <footer class="sheet__foot">
-      {@render footer()}
+      <div class="sheet__actions">{@render footer()}</div>
     </footer>
   </form>
 </dialog>
@@ -104,6 +104,14 @@
     border-top: 1px solid var(--line);
   }
 
+  /* Footer buttons are always the same size: equal columns as wide as the widest label (min 8 rem). */
+  .sheet__actions {
+    display: inline-grid;
+    grid-auto-columns: minmax(8rem, 1fr);
+    grid-auto-flow: column;
+    gap: var(--space-3);
+  }
+
   @media (max-width: 47.99rem) {
     .sheet {
       width: 100%;
@@ -121,6 +129,12 @@
 
     .sheet__foot {
       padding-block-end: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .sheet__actions {
+      display: grid;
+      flex: 1;
+      grid-auto-columns: minmax(0, 1fr);
     }
 
     @media (prefers-reduced-motion: no-preference) {

@@ -213,7 +213,7 @@
         <Icon name="trash" />{t('plan.goalDelete')}
       </button>
     {/if}
-    <button class="btn btn--primary btn--lg save" type="submit">{t('plan.save')}</button>
+    <button class="btn btn--primary" type="submit">{t('plan.save')}</button>
   {/snippet}
 </Dialog>
 
@@ -309,15 +309,5 @@
   .switch-row label {
     font-weight: 600;
     cursor: pointer;
-  }
-
-  .save {
-    min-width: 8rem;
-  }
-
-  @media (max-width: 47.99rem) {
-    .save {
-      flex: 1;
-    }
   }
 </style>

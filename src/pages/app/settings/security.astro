@@ -135,7 +135,7 @@ const islandMessages = Object.fromEntries(
         </li>
       ))}
     </ul>
-    <div class="actions">
+    <div class="btn-group">
       {sessions.length > 1 && (
         <form method="post" action="/api/sessions">
           <input type="hidden" name="action" value="revoke-others" />
@@ -216,11 +216,5 @@ const islandMessages = Object.fromEntries(
   .row__meta {
     color: var(--ink-2);
     font-size: 0.875rem;
-  }
-
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
   }
 </style>
