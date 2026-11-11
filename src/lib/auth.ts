@@ -92,6 +92,10 @@ function createAuth() {
 
     session: { expiresIn: 30 * DAY, updateAge: DAY },
 
+    // Renaming and removing passkeys go through /api/passkeys/:id, which keeps the last passkey of an
+    // unconfirmed account (Better Auth's own endpoints would let it go).
+    disabledPaths: ['/passkey/update-passkey', '/passkey/delete-passkey'],
+
     rateLimit: {
       enabled: true,
       storage: 'database',

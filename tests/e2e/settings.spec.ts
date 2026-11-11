@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page, type TestInfo } from '@playwright/test';
 import {
+  addVirtualAuthenticator,
   collectErrors,
   expectNoAxeViolations,
   expectNoAxeViolationsInThemes,
@@ -388,3 +389,75 @@ async function categoryId(page: Page, name: string): Promise<string> {
   if (!id) throw new Error(`No category ${name}`);
   return id;
 }
+
+/** The passkey list island is hydrated ("Add a passkey" below it hydrates only when scrolled to). */
+async function passkeyListReady(page: Page) {
+  await expect(page.locator('astro-island[component-url*="PasskeyList"]:not([ssr])')).toHaveCount(1);
+}
+
+test.describe('settings › passkeys', () => {
+  test('unconfirmed account: rename works, the only passkey stays', async ({ page }) => {
+    const errors = collectErrors(page);
+    await addVirtualAuthenticator(page);
+    await page.goto('/sign-in?mode=create');
+    await page.getByLabel('Email', { exact: true }).fill(uniqueEmail('pk-locked'));
+    await page.getByLabel(/I’m 18 or older/).check();
+    await page.getByRole('button', { name: 'Create account with passkey' }).click();
+    await page.waitForURL('**/app/welcome');
+    await skipOnboarding(page);
+
+    await page.goto('/app/settings/security');
+    await passkeyListReady(page);
+    await expect(page.getByRole('button', { name: /^Remove/ })).toBeDisabled();
+    await expect(page.getByText('Confirm your email before removing your only passkey.')).toBeVisible();
+
+    await page.getByRole('button', { name: /^Rename/ }).click();
+    const dialog = page.getByRole('dialog', { name: 'Rename passkey' });
+    await dialog.getByLabel('Name', { exact: true }).fill('  Work   laptop ');
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Passkey renamed.' })).toBeVisible();
+    await page.reload();
+    await expect(page.locator('main').getByText('Work laptop', { exact: true })).toBeVisible();
+    await expectNoHorizontalScroll(page);
+    await expectNoAxeViolationsInThemes(page);
+
+    // The server keeps it too, and Better Auth's own update/delete endpoints are closed.
+    const id = await page.evaluate(async () => {
+      const response = await fetch('/api/auth/passkey/list-user-passkeys');
+      return ((await response.json()) as { id: string }[])[0]?.id ?? '';
+    });
+    const h = { Origin: 'http://localhost:4321' };
+    const del = (path: string) => page.request.fetch(path, { method: 'DELETE', headers: h });
+    expect((await del(`/api/passkeys/${id}`)).status()).toBe(409);
+    expect((await del('/api/passkeys/not-mine')).status()).toBe(404);
+    expect(
+      (await page.request.post('/api/auth/passkey/delete-passkey', { data: { id }, headers: h })).status(),
+    ).toBe(404);
+    expect(
+      (
+        await page.request.post('/api/auth/passkey/update-passkey', { data: { id, name: 'x' }, headers: h })
+      ).status(),
+    ).toBe(404);
+    expect(errors).toEqual([]);
+  });
+
+  test('confirmed account: add a passkey, then remove it after confirming', async ({ page }) => {
+    await newUser(page, 'pk-remove');
+    await addVirtualAuthenticator(page);
+    await page.goto('/app/settings/security');
+    await waitForIslands(page);
+    await page.getByRole('button', { name: 'Add a passkey' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Passkey added.' })).toBeVisible();
+    await waitForIslands(page);
+
+    await page.getByRole('button', { name: /^Remove/ }).click();
+    const dialog = page.getByRole('dialog', { name: /^Remove/ });
+    await expect(dialog.getByText('It’s your only passkey', { exact: false })).toBeVisible();
+    await expectNoAxeViolations(page);
+    await dialog.getByRole('button', { name: 'Remove' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Passkey removed.' })).toBeVisible();
+    await expect(page.getByText('No passkeys yet.', { exact: false })).toBeVisible();
+    await page.reload();
+    await expect(page.getByText('No passkeys yet.', { exact: false })).toBeVisible();
+  });
+});
