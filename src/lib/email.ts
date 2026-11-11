@@ -12,7 +12,13 @@ import type { Locale } from '../i18n';
 import { deployment } from './deployment';
 import { renderEmail, type EmailVars, type RenderedEmail } from './email-render';
 
-export type EmailKind = 'otp' | 'inactivity-25' | 'inactivity-29' | 'account-deleted' | 'unverified-deleted';
+export type EmailKind =
+  | 'otp'
+  | 'inactivity-25'
+  | 'inactivity-29'
+  | 'account-deleted'
+  | 'unverified-deleted'
+  | 'account-deleted-by-user';
 
 export async function buildEmail(kind: EmailKind, locale: Locale, vars: EmailVars): Promise<RenderedEmail> {
   const entry = await getEntry('emails', `${locale}/${kind}`);

@@ -270,7 +270,14 @@ export const emailQueue = sqliteTable(
   {
     id: text('id').primaryKey(),
     kind: text('kind', {
-      enum: ['otp', 'inactivity-25', 'inactivity-29', 'account-deleted', 'unverified-deleted'],
+      enum: [
+        'otp',
+        'inactivity-25',
+        'inactivity-29',
+        'account-deleted',
+        'unverified-deleted',
+        'account-deleted-by-user',
+      ],
     }).notNull(),
     userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
     /** UTC day `YYYY-MM-DD` the email counts toward. */

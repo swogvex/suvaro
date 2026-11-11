@@ -3,7 +3,8 @@ import type { UiKey } from '../../i18n';
 import type { IconName } from '../icons';
 import { appPaths } from '../routes';
 
-export type SettingsSection = 'profile' | 'preferences' | 'appearance' | 'categories' | 'security';
+export type SettingsSection =
+  'profile' | 'preferences' | 'appearance' | 'categories' | 'security' | 'privacy';
 
 export const settingsSections: readonly {
   key: SettingsSection;
@@ -52,5 +53,13 @@ export const settingsSections: readonly {
     lead: 'settings.securityLead',
     search: 'search.security',
     icon: 'shield',
+  },
+  {
+    key: 'privacy',
+    href: appPaths.privacy,
+    title: 'settings.privacy',
+    lead: 'settings.privacyLead',
+    search: 'search.privacy',
+    icon: 'download',
   },
 ];

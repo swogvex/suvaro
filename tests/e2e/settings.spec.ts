@@ -14,6 +14,7 @@ import {
   waitForIslands,
 } from './helpers';
 import { ulid } from '../../src/lib/id';
+import { codeFor, emailsTo } from './outbox';
 
 test.beforeEach(async ({ context }) => {
   await context.setExtraHTTPHeaders({ 'x-forwarded-for': randomIp() });
@@ -459,5 +460,90 @@ test.describe('settings › passkeys', () => {
     await expect(page.getByText('No passkeys yet.', { exact: false })).toBeVisible();
     await page.reload();
     await expect(page.getByText('No passkeys yet.', { exact: false })).toBeVisible();
+  });
+});
+
+test.describe('settings › privacy', () => {
+  test('download all my data: a ZIP with only my data', async ({ page }) => {
+    await newUser(page, 'export');
+    await page.goto('/app/settings/privacy');
+    await expect(page.getByText('Last use: today.')).toBeVisible();
+    await expectNoHorizontalScroll(page);
+    await expectNoAxeViolationsInThemes(page);
+
+    const download = page.waitForEvent('download');
+    await page.getByRole('link', { name: 'Download my data' }).click();
+    const file = await download;
+    expect(file.suggestedFilename()).toMatch(/^suvaro-data-\d{4}-\d{2}-\d{2}\.zip$/);
+
+    const response = await page.request.get('/api/account/export');
+    expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toBe('application/zip');
+    expect(response.headers()['cache-control']).toContain('no-store');
+    const body = await response.body();
+    expect(body.readUInt32LE(0)).toBe(0x04034b50);
+    // data.json is stored compressed; what it holds (only this user's rows, no secrets) is unit-tested.
+    expect(body.length).toBeGreaterThan(1_000);
+  });
+
+  test('the export needs a session', async ({ request }) => {
+    expect((await request.get('/api/account/export')).status()).toBe(401);
+  });
+
+  test('delete my account with an email code: gone at once, confirmation email sent', async ({ page }) => {
+    const errors = collectErrors(page);
+    const email = await newUser(page, 'delete-code');
+    await page.goto('/app/settings/privacy');
+    await waitForIslands(page);
+
+    // The API refuses another account's id even with a fresh session.
+    const wrong = await page.request.fetch('/api/account', {
+      method: 'DELETE',
+      data: { userId: 'someone-else' },
+      headers: { Origin: 'http://localhost:4321' },
+    });
+    expect(wrong.status()).toBe(409);
+
+    await page.getByRole('button', { name: 'Delete my account' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Delete your account' });
+    await expectNoAxeViolations(page);
+    await dialog.getByRole('button', { name: 'Email me a code' }).click();
+    await dialog.getByLabel('Code from the email').fill(await codeFor(email, 2));
+    await expectNoAxeViolations(page);
+    await dialog.getByRole('button', { name: 'Delete account' }).click();
+
+    const done = page.getByRole('dialog', { name: 'Account deleted' });
+    await expect(
+      done.getByText('Your account and everything in it are gone.', { exact: false }),
+    ).toBeVisible();
+    expect((await page.request.get('/app', { maxRedirects: 0 })).status()).toBe(303);
+    await expect
+      .poll(async () => (await emailsTo(email)).map((sent) => sent.subject))
+      .toContain('Your Suvaro account has been deleted');
+
+    await done.getByRole('button', { name: 'Go to the homepage' }).click();
+    await expect(page).toHaveURL(/\/$/);
+    expect(errors).toEqual([]);
+  });
+
+  test('delete my account with a passkey', async ({ page }) => {
+    await addVirtualAuthenticator(page);
+    const email = uniqueEmail('delete-passkey');
+    await page.goto('/sign-in?mode=create');
+    await page.getByLabel('Email', { exact: true }).fill(email);
+    await page.getByLabel(/I’m 18 or older/).check();
+    await page.getByRole('button', { name: 'Create account with passkey' }).click();
+    await page.waitForURL('**/app/welcome');
+    await skipOnboarding(page);
+
+    await page.goto('/app/settings/privacy');
+    await waitForIslands(page);
+    await page.getByRole('button', { name: 'Delete my account' }).click();
+    await page
+      .getByRole('dialog', { name: 'Delete your account' })
+      .getByRole('button', { name: 'Confirm with a passkey' })
+      .click();
+    await expect(page.getByRole('dialog', { name: 'Account deleted' })).toBeVisible();
+    expect((await page.request.get('/app', { maxRedirects: 0 })).status()).toBe(303);
   });
 });

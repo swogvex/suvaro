@@ -1,7 +1,10 @@
-/** Deleting a whole account (server only). Used by the daily cron now and by Settings › Privacy later. */
+/** Deleting a whole account (server only): the daily cron and Settings › Privacy (`DELETE /api/account`). */
 import { eq } from 'drizzle-orm';
 import type { Database } from './db/client';
 import { movement, recurring, user } from './db/schema';
+
+/** Deleting the account from Settings needs a sign-in (passkey or email code) at most this old. */
+export const FRESH_SIGN_IN_MS = 5 * 60 * 1000;
 
 type Executor = Database | Parameters<Parameters<Database['transaction']>[0]>[0];
 

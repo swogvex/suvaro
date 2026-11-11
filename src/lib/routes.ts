@@ -70,6 +70,7 @@ export const appPaths = {
   appearance: '/app/settings/appearance',
   categories: '/app/settings/categories',
   security: '/app/settings/security',
+  privacy: '/app/settings/privacy',
   verifyEmail: '/app/verify-email',
   demo: '/demo',
 } as const;
