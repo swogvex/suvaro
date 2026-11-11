@@ -53,10 +53,15 @@ export function markdownToText(markdown: string): string {
     .trim();
 }
 
+/** Markdown renders `[text]({{signInUrl}})` with a percent-encoded href; this brings the placeholder back. */
+export function decodePlaceholders(html: string): string {
+  return html.replace(/%7B%7B\s*(\w+)\s*%7D%7D/gi, '{{$1}}');
+}
+
 export function renderEmail(source: EmailSource, vars: EmailVars, lang: string): RenderedEmail {
   const subject = fill(source.subject, vars);
   const text = `${markdownToText(fill(source.markdown, vars))}\n\n— Suvaro\n`;
-  const body = fill(source.html, vars, escapeHtml);
+  const body = fill(decodePlaceholders(source.html), vars, escapeHtml);
   const preheader = escapeHtml(fill(source.preheader, vars));
   const html = `<!doctype html>
 <html lang="${escapeHtml(lang)}">

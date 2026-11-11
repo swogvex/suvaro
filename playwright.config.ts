@@ -26,6 +26,12 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     reuseExistingServer: false,
     timeout: 240_000,
-    env: { HOST: '127.0.0.1', PORT: String(PORT), EMAIL_OUTBOX_DIR: OUTBOX_DIR },
+    env: {
+      HOST: '127.0.0.1',
+      PORT: String(PORT),
+      EMAIL_OUTBOX_DIR: OUTBOX_DIR,
+      // Test-only value, also in tests/e2e/recurring.spec.ts; the real one lives in Vercel env vars.
+      CRON_SECRET: 'e2e-cron-secret-not-a-real-one',
+    },
   },
 });

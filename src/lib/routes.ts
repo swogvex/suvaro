@@ -61,6 +61,7 @@ export const appPaths = {
   welcome: '/app/welcome',
   movements: '/app/movements',
   calendar: '/app/movements/calendar',
+  recurring: '/app/movements/recurring',
   stats: '/app/stats',
   plan: '/app/plan',
   settings: '/app/settings',

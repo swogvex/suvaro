@@ -252,6 +252,46 @@ export const recurring = sqliteTable(
   (table) => [index('recurring_user_next_idx').on(table.userId, table.nextDate)],
 );
 
+/** A `confirm` recurring whose date arrived: the user confirms it (creates the movement) or skips it. */
+export const recurringPending = sqliteTable(
+  'recurring_pending',
+  {
+    id: text('id').primaryKey(),
+    userId: userId(),
+    recurringId: text('recurring_id')
+      .notNull()
+      .references(() => recurring.id, { onDelete: 'cascade' }),
+    /** `YYYY-MM-DD`, the occurrence waiting for confirmation. */
+    dueDate: text('due_date').notNull(),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    uniqueIndex('recurring_pending_recurring_due_idx').on(table.recurringId, table.dueDate),
+    index('recurring_pending_user_idx').on(table.userId, table.dueDate),
+  ],
+);
+
+/**
+ * Ledger of transactional emails, for the 100/day cap (Resend free plan). No address and no content: only
+ * the kind and the UTC day it counts toward. `user_id` is cleared when the account is deleted. Pruned after
+ * 14 days by the daily cron.
+ */
+export const emailQueue = sqliteTable(
+  'email_queue',
+  {
+    id: text('id').primaryKey(),
+    kind: text('kind', {
+      enum: ['otp', 'inactivity-25', 'inactivity-29', 'account-deleted', 'unverified-deleted'],
+    }).notNull(),
+    userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
+    /** UTC day `YYYY-MM-DD` the email counts toward. */
+    scheduledFor: text('scheduled_for').notNull(),
+    /** Unix time in milliseconds; null while not sent. */
+    sentAt: integer('sent_at'),
+  },
+  (table) => [index('email_queue_day_idx').on(table.scheduledFor)],
+);
+
 /** Monthly spending limit for one category, or for all expenses when `category_id` is null (global). */
 export const budget = sqliteTable(
   'budget',

@@ -74,6 +74,8 @@ export default defineConfig({
       BETTER_AUTH_SECRET: envField.string({ context: 'server', access: 'secret', optional: true }),
       BETTER_AUTH_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
       RESEND_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      // Vercel Cron sends it as a Bearer token to /api/cron/daily; without it the route stays closed.
+      CRON_SECRET: envField.string({ context: 'server', access: 'secret', optional: true }),
       EMAIL_FROM: envField.string({
         context: 'server',
         access: 'secret',

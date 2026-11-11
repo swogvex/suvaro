@@ -1,21 +1,29 @@
 ---
 /**
- * Movements page heading + the List · Calendar switch (links that keep the current filters).
- * Recurring joins as a third view when recurring movements can be managed.
+ * Movements page heading + the List · Calendar · Recurring (count) switch. List and Calendar links keep the
+ * current filters; Recurring has none. A dot on Recurring says something is waiting for confirmation.
  * @prop view   Current view.
  * @prop query  Filter query to keep in the links (no leading "?").
  */
 import { useTranslations } from '../../i18n';
+import { db } from '../../lib/db';
+import { countPending, countRecurring } from '../../lib/recurring/repo';
 import { appPaths } from '../../lib/routes';
 import Icon from '../ui/Icon.astro';
 
 interface Props {
-  view: 'list' | 'calendar';
+  view: 'list' | 'calendar' | 'recurring';
   query: string;
 }
 
 const { view, query } = Astro.props;
-const t = useTranslations(Astro.locals.profile?.locale);
+const { user, profile } = Astro.locals;
+if (!user) throw new Error('Signed-in component');
+const t = useTranslations(profile?.locale);
+const [recurringCount, pendingCount] = await Promise.all([
+  countRecurring(db, user.id),
+  countPending(db, user.id),
+]);
 const suffix = query ? `?${query}` : '';
 const views = [
   { key: 'list', href: `${appPaths.movements}${suffix}`, label: t('movements.list'), icon: 'list' },
@@ -25,6 +33,7 @@ const views = [
     label: t('movements.calendar'),
     icon: 'calendar',
   },
+  { key: 'recurring', href: appPaths.recurring, label: t('recurring.view'), icon: 'repeat' },
 ] as const;
 ---
 
@@ -37,10 +46,20 @@ const views = [
           class="segmented__item"
           href={href}
           aria-current={view === key ? 'page' : undefined}
-          data-view-link
+          data-view-link={key === 'recurring' ? undefined : ''}
         >
           <Icon name={icon} />
           {label}
+          {key === 'recurring' && (
+            <>
+              <span class="count num">{recurringCount}</span>
+              {pendingCount > 0 && (
+                <span class="tab-dot">
+                  <span class="visually-hidden">{t('recurring.pendingDot')}</span>
+                </span>
+              )}
+            </>
+          )}
         </a>
       ))}
     </div>
@@ -54,5 +73,32 @@ const views = [
     gap: var(--space-3) var(--space-4);
     align-items: center;
     justify-content: space-between;
+  }
+
+  /* Phones: the three views share the full width; icons go so "Recurrentes 12" still fits at 360 px. */
+  @media (max-width: 30rem) {
+    nav,
+    .segmented {
+      width: 100%;
+    }
+
+    .segmented__item {
+      flex: 1 1 auto;
+      padding-inline: var(--space-2);
+    }
+
+    .segmented__item :global(svg) {
+      display: none;
+    }
+  }
+
+  .count {
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-xs);
+    background: var(--surface-2);
+    color: var(--ink-2);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.4;
   }
 </style>
