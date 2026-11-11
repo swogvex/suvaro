@@ -67,6 +67,11 @@ export const es = {
   'signIn.heroLine5': 'Gratis y sin planes de pago. Tus datos nunca se venden.',
   'signIn.heroNote':
     'Suvaro es una libreta para tus propios números: no es un banco ni un servicio financiero.',
+  'signIn.tipPasskeyTitle': '¿Qué es una llave de acceso?',
+  'signIn.tipPasskey':
+    'Tu móvil u ordenador abre Suvaro con tu huella, tu cara o el bloqueo de pantalla. Nada que recordar y nada que se pueda filtrar.',
+  'signIn.tipCodeTitle': '¿No encuentras el email?',
+  'signIn.tipCode': 'Puede tardar un minuto. Mira en spam o en promociones, o pide un código nuevo.',
   'signIn.modeLabel': '¿Qué quieres hacer?',
   'signIn.modeSignIn': 'Entrar',
   'signIn.modeCreate': 'Crear cuenta',

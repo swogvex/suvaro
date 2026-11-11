@@ -63,6 +63,11 @@ export const en = {
   'signIn.heroLine4': 'Works on your phone and your computer, in English and Spanish.',
   'signIn.heroLine5': 'Free, with no paid plans. Your data is never sold.',
   'signIn.heroNote': 'Suvaro is a notebook for your own numbers: not a bank and not a financial service.',
+  'signIn.tipPasskeyTitle': 'What’s a passkey?',
+  'signIn.tipPasskey':
+    'Your phone or computer unlocks Suvaro with your fingerprint, face or screen lock. Nothing to remember and nothing to leak.',
+  'signIn.tipCodeTitle': 'Can’t find the email?',
+  'signIn.tipCode': 'It can take a minute. Check your spam or promotions folder, or send a new code.',
   'signIn.modeLabel': 'What do you want to do?',
   'signIn.modeSignIn': 'Sign in',
   'signIn.modeCreate': 'Create account',
