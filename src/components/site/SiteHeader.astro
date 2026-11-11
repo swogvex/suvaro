@@ -1,6 +1,6 @@
 ---
 /**
- * Public header: logo · section links · language switch · Sign in.
+ * Public header: logo on the left; section links, language switch and Sign in on the right.
  * @prop locale      Page language.
  * @prop alternates  This page in each language (for the language link).
  */
@@ -64,9 +64,10 @@ const anchor = (id: string) => (onHome ? `#${id}` : `${home}#${id}`);
     border-radius: var(--radius-s);
   }
 
+  /* Links sit on the right, next to the language switch and Sign in. */
   .site-header__nav {
     display: none;
-    margin-inline-start: var(--space-4);
+    margin-inline-start: auto;
   }
 
   .site-header__nav ul {
@@ -104,6 +105,10 @@ const anchor = (id: string) => (onHome ? `#${id}` : `${home}#${id}`);
   @media (min-width: 52rem) {
     .site-header__nav {
       display: block;
+    }
+
+    .site-header__nav + .site-header__actions {
+      margin-inline-start: 0;
     }
   }
 

@@ -1,5 +1,6 @@
 /**
- * `PATCH /api/movements/:id` — edits one of the user's movements (JSON, `updateInput`).
+ * `PATCH /api/movements/:id` — edits one of the user's movements (JSON, `updateInput`); answers with the
+ *   movement and `alert` (see `POST /api/movements`).
  * `DELETE /api/movements/:id` — deletes it for good (the 5-second undo happens in the browser first).
  * Another user's id answers 404, exactly like a missing one.
  */
@@ -10,14 +11,15 @@ import { describeError, logError } from '../../../lib/errors';
 import { ULID_PATTERN } from '../../../lib/id';
 import { updateInput } from '../../../lib/movements/schema';
 import { deleteMovement, updateMovement } from '../../../lib/movements/repo';
+import { safeAlertMessage } from '../../../lib/plan/notify';
 
 export const prerender = false;
 
 const ROUTE = '/api/movements/[id]';
 
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
-  const { user } = locals;
-  if (!user) return apiError(401, 'UNAUTHORIZED');
+  const { user, profile } = locals;
+  if (!user || !profile) return apiError(401, 'UNAUTHORIZED');
   const id = params['id'] ?? '';
   if (!ULID_PATTERN.test(id)) return apiError(404, 'NOT_FOUND');
 
@@ -25,7 +27,10 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
   if (!body.ok) return body.response;
   try {
     const result = await updateMovement(db, user.id, id, body.data);
-    if (result.ok) return json(200, { movement: result.movement });
+    if (result.ok) {
+      const alert = await safeAlertMessage(db, user.id, profile);
+      return json(200, { movement: result.movement, alert });
+    }
     return apiError(result.error === 'NOT_FOUND' ? 404 : 400, result.error);
   } catch (error) {
     await logError(ROUTE, 'MOVEMENT_UPDATE', describeError(error));

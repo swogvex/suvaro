@@ -164,9 +164,12 @@ const title = initialMode === 'create' ? t('signIn.titleCreate') : t('signIn.tit
   }
 
   /* As tall as the tallest step (create account with its errors, Spanish), so the card never jumps when
-     the mode changes, a box is ticked or an error appears. Measured: 656 px phone, 619 px desktop. */
+     the mode changes, a box is ticked or an error appears. Measured (the tip hides while an error shows):
+     633 px phone, 619 px desktop (create account + error, Spanish). */
+  /* A grid so the form island (its wrapper is display: contents) stretches to the full height. */
   .panel {
-    min-height: 41.5rem;
+    display: grid;
+    min-height: 40rem;
     padding: var(--space-6);
   }
 

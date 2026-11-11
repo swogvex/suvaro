@@ -4,9 +4,10 @@
  * Desktop: bottom-right. Shows `message` from the server (e.g. after a form post) and any toast sent with
  * `showToast()` from `src/lib/toast.ts`, optionally with "Undo · 5 s" and a visible countdown.
  * Disappears after 5 s or with its close button. A new toast replaces the current one (which then counts
- * as dismissed, so a pending delete is committed).
+ * as dismissed, so a pending delete is committed); a toast sent with `queue` waits for the current one.
  * @prop locale   Profile language (button labels).
  * @prop message  Optional message to show on load.
+ * @prop alert    Optional budget alert to show on load (after `message`, when both are set).
  */
 import Icon from '../ui/Icon.astro';
 import { useTranslations, type Locale } from '../../i18n';
@@ -14,13 +15,14 @@ import { useTranslations, type Locale } from '../../i18n';
 interface Props {
   locale: Locale;
   message?: string | undefined;
+  alert?: string | null | undefined;
 }
 
-const { locale, message } = Astro.props;
+const { locale, message, alert } = Astro.props;
 const t = useTranslations(locale);
 ---
 
-<div class="toaster" role="status" aria-live="polite" data-toaster>
+<div class="toaster" role="status" aria-live="polite" data-toaster data-alert={alert ?? undefined}>
   <div class="toast" data-toast hidden={!message}>
     <p class="toast__text" data-toast-text>
       {message}
@@ -46,16 +48,19 @@ const t = useTranslations(locale);
   const count = document.querySelector<HTMLElement>('[data-toast-count]');
   const close = document.querySelector<HTMLButtonElement>('[data-toast-close]');
   let current: ToastDetail | null = null;
+  const waiting: ToastDetail[] = [];
   let hideAt = 0;
   let timer: ReturnType<typeof setInterval> | undefined;
 
-  /** Ends the current toast. `undone` skips its dismiss callback. */
-  function finish(undone = false) {
+  /** Ends the current toast. `undone` skips its dismiss callback. Then shows the next queued one, if any. */
+  function finish(undone = false, next = true) {
     clearInterval(timer);
     const ended = current;
     current = null;
     if (toast) toast.hidden = true;
     if (!undone) ended?.onDismiss?.();
+    const queued = next ? waiting.shift() : undefined;
+    if (queued) show(queued);
   }
 
   function tick() {
@@ -67,7 +72,11 @@ const t = useTranslations(locale);
 
   function show(detail: ToastDetail) {
     if (!toast || !text || !undoButton) return;
-    if (current) finish();
+    if (current && detail.queue) {
+      waiting.push(detail);
+      return;
+    }
+    if (current) finish(false, false);
     current = detail;
     text.textContent = detail.message;
     undoButton.hidden = !detail.undo;
@@ -85,12 +94,14 @@ const t = useTranslations(locale);
   close?.addEventListener('click', () => finish());
   window.addEventListener(TOAST_EVENT, (event) => show((event as CustomEvent<ToastDetail>).detail));
   // Leaving the page commits whatever the toast was holding back (e.g. a delete waiting for Undo).
-  window.addEventListener('pagehide', () => finish());
+  window.addEventListener('pagehide', () => finish(false, false));
   if (toast && !toast.hidden) {
     current = { message: text?.textContent ?? '' };
     hideAt = Date.now() + TOAST_MS;
     timer = setInterval(tick, 250);
   }
+  const alert = document.querySelector<HTMLElement>('[data-toaster]')?.dataset['alert'];
+  if (alert) show({ message: alert, queue: true });
 </script>
 
 <style>

@@ -345,6 +345,16 @@
         {t('signIn.sendCode')}
       </button>
     </form>
+
+    <!-- The tip fills the space the error would take, so the card keeps one height with or without it. -->
+    {#if mode === 'sign-in' && !error}
+      <aside class="sign-in__tip" aria-labelledby="sign-in-tip-title">
+        <h3 class="sign-in__tip-title" id="sign-in-tip-title">
+          <Icon name="key" />{t('signIn.tipPasskeyTitle')}
+        </h3>
+        <p>{t('signIn.tipPasskey')}</p>
+      </aside>
+    {/if}
   {:else}
     <h2 class="sign-in__title">{t('signIn.codeLegend')}</h2>
     <p class="sign-in__lead" aria-live="polite">
@@ -401,13 +411,53 @@
         <button class="btn btn--ghost" type="button" onclick={useOtherEmail}>{t('signIn.otherEmail')}</button>
       </div>
     </form>
+
+    {#if !error}
+      <aside class="sign-in__tip" aria-labelledby="sign-in-tip-title">
+        <h3 class="sign-in__tip-title" id="sign-in-tip-title">
+          <Icon name="mail" />{t('signIn.tipCodeTitle')}
+        </h3>
+        <p>{t('signIn.tipCode')}</p>
+      </aside>
+    {/if}
   {/if}
 </div>
 
 <style>
+  /* A column as tall as the panel, so the tip can sit at the bottom instead of leaving a blank strip. */
   .sign-in {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: var(--space-5);
+  }
+
+  .sign-in__tip {
+    display: grid;
+    gap: var(--space-1);
+    margin-block-start: auto;
+    padding: var(--space-4);
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+    color: var(--ink-2);
+    font-size: 0.875rem;
+  }
+
+  .sign-in__tip-title {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: normal;
+  }
+
+  .sign-in__tip-title :global(svg) {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    color: var(--accent);
   }
 
   .sign-in__modes {

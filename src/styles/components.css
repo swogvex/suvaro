@@ -507,6 +507,21 @@ a.segmented__item[aria-current='page'] {
   color: var(--negative);
 }
 
+/* ---------- Tab dot (unread budget alerts on the Plan tab) ---------- */
+.tab-dot {
+  display: inline-block;
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--warning);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.tab-dot[hidden] {
+  display: none;
+}
+
 /* ---------- Badge ---------- */
 .badge {
   display: inline-flex;

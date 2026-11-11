@@ -5,6 +5,7 @@
  * Hidden while the on-screen keyboard is open.
  * @prop locale   Profile language.
  * @prop section  Active section, for `aria-current`.
+ * @prop planDot  Budget alerts not read on Plan yet (a dot on the Plan item).
  */
 import Icon from '../ui/Icon.astro';
 import ThemeToggle from './ThemeToggle.astro';
@@ -14,9 +15,10 @@ import { appSections, type AppSection } from '../../lib/app-nav';
 interface Props {
   locale: Locale;
   section: AppSection | 'settings';
+  planDot?: boolean;
 }
 
-const { locale, section } = Astro.props;
+const { locale, section, planDot = false } = Astro.props;
 const t = useTranslations(locale);
 ---
 
@@ -24,13 +26,14 @@ const t = useTranslations(locale);
   <ul>
     {appSections.map(({ key, href, label, icon }) => (
       <li>
-        <a
-          class="dock__item"
-          href={href}
-          aria-label={t(label)}
-          aria-current={section === key ? 'page' : undefined}
-        >
+        <a class="dock__item" href={href} aria-current={section === key ? 'page' : undefined}>
           <Icon name={icon} />
+          <span class="visually-hidden">{t(label)}</span>
+          {key === 'plan' && (
+            <span class="tab-dot dock__dot" data-plan-dot hidden={!planDot}>
+              <span class="visually-hidden">{t('plan.alertDot')}</span>
+            </span>
+          )}
         </a>
       </li>
     ))}
@@ -109,6 +112,16 @@ const t = useTranslations(locale);
     background: var(--surface-2);
     box-shadow: inset 0 0 0 1px var(--line);
     color: var(--accent);
+  }
+
+  .dock__item {
+    position: relative;
+  }
+
+  .dock__dot {
+    position: absolute;
+    inset-block-start: 8px;
+    inset-inline-end: 8px;
   }
 
   .dock :global(.dock__item svg) {

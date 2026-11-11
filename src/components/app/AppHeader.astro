@@ -7,6 +7,7 @@
  * @prop locale   Profile language.
  * @prop section  Active section, for `aria-current`.
  * @prop nav      Shows the tabs and the avatar (off during onboarding).
+ * @prop planDot  Budget alerts not read on Plan yet (a dot on the Plan tab; scripts can show it later).
  */
 import Icon from '../ui/Icon.astro';
 import Logo from '../ui/Logo.astro';
@@ -19,9 +20,10 @@ interface Props {
   locale: Locale;
   section: AppSection | 'settings';
   nav?: boolean;
+  planDot?: boolean;
 }
 
-const { locale, section, nav = true } = Astro.props;
+const { locale, section, nav = true, planDot = false } = Astro.props;
 const t = useTranslations(locale);
 ---
 
@@ -38,6 +40,11 @@ const t = useTranslations(locale);
               <li>
                 <a href={href} aria-current={section === key ? 'page' : undefined}>
                   {t(label)}
+                  {key === 'plan' && (
+                    <span class="tab-dot" data-plan-dot hidden={!planDot}>
+                      <span class="visually-hidden">{t('plan.alertDot')}</span>
+                    </span>
+                  )}
                 </a>
               </li>
             ))}
@@ -102,6 +109,7 @@ const t = useTranslations(locale);
 
   .app-header__nav a {
     display: inline-flex;
+    gap: var(--space-2);
     align-items: center;
     min-height: 2.75rem;
     padding-inline: var(--space-4);

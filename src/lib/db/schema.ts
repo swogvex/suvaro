@@ -320,3 +320,27 @@ export const contribution = sqliteTable(
     index('contribution_goal_idx').on(table.goalId),
   ],
 );
+
+/**
+ * In-app budget alerts already shown: one row per budget, cycle and level (80 or 100), so each alert
+ * appears once per cycle. `read_at` is set when the user opens Plan (clears the dot on the Plan tab).
+ */
+export const alertSeen = sqliteTable(
+  'alert_seen',
+  {
+    id: text('id').primaryKey(),
+    userId: userId(),
+    budgetId: text('budget_id')
+      .notNull()
+      .references(() => budget.id, { onDelete: 'cascade' }),
+    /** `YYYY-MM-DD`, the first day of the cycle. */
+    cycleStart: text('cycle_start').notNull(),
+    level: integer('level').notNull(),
+    readAt: timestamp('read_at'),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    uniqueIndex('alert_seen_budget_cycle_level_idx').on(table.budgetId, table.cycleStart, table.level),
+    index('alert_seen_user_cycle_idx').on(table.userId, table.cycleStart),
+  ],
+);
