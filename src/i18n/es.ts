@@ -70,6 +70,8 @@ export const es = {
   'signIn.tipPasskeyTitle': '¿Qué es una llave de acceso?',
   'signIn.tipPasskey':
     'Tu móvil u ordenador abre Suvaro con tu huella, tu cara o el bloqueo de pantalla. Nada que recordar y nada que se pueda filtrar.',
+  'signIn.tipNextTitle': '¿Y después?',
+  'signIn.tipNext': 'Tres pasos rápidos: moneda, ingresos y categorías. Cuestión de un minuto.',
   'signIn.tipCodeTitle': '¿No encuentras el email?',
   'signIn.tipCode': 'Puede tardar un minuto. Mira en spam o en promociones, o pide un código nuevo.',
   'signIn.modeLabel': '¿Qué quieres hacer?',
