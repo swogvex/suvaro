@@ -104,6 +104,14 @@ export async function signInWithCode(page: Page, email: string, nth: number) {
   await page.waitForURL(/\/app(\/|$)/);
 }
 
+/**
+ * Waits until every island on the page has hydrated (Astro drops the `ssr` attribute then). Server HTML
+ * shows buttons before their handlers exist; keyboard tests must not press them in that gap.
+ */
+export async function waitForIslands(page: Page) {
+  await expect(page.locator('astro-island[ssr]')).toHaveCount(0);
+}
+
 /** Skips onboarding with the defaults. */
 export async function skipOnboarding(page: Page) {
   await page.getByRole('button', { name: 'Skip setup' }).click();

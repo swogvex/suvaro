@@ -19,6 +19,7 @@ import { db } from './db';
 import * as schema from './db/schema';
 import { authBaseURL, deployment } from './deployment';
 import { buildEmail, sendEmail } from './email';
+import { recordEmail } from './email-ledger';
 import { describeError, logError } from './errors';
 import { ulid } from './id';
 import { z } from 'zod';
@@ -138,6 +139,8 @@ function createAuth() {
           try {
             const locale = await emailLocale(email, ctx?.request?.headers.get(LOCALE_HEADER));
             await sendEmail(email, await buildEmail('otp', locale, { code: otp }));
+            // Counted toward the daily email cap; a ledger hiccup must not fail the sign-in.
+            await recordEmail(db, 'otp', null).catch(() => undefined);
           } catch (error) {
             await logError('/api/auth/email-otp', 'EMAIL_SEND_FAILED', describeError(error));
             throw new APIError('INTERNAL_SERVER_ERROR', {

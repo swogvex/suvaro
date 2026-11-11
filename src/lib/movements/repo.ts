@@ -147,7 +147,11 @@ export type WriteError = 'INVALID_CATEGORY' | 'LIMIT_REACHED' | 'ID_TAKEN' | 'NO
 export type WriteResult = { ok: true; movement: Movement } | { ok: false; error: WriteError };
 
 /** The category must be one of the user's own, not archived. */
-async function ownsCategory(db: Database, userId: string, categoryId: string | null): Promise<boolean> {
+export async function ownsCategory(
+  db: Database,
+  userId: string,
+  categoryId: string | null,
+): Promise<boolean> {
   if (categoryId === null) return true;
   const [row] = await db
     .select({ id: category.id })

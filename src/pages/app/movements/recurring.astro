@@ -1,0 +1,42 @@
+---
+/**
+ * Movements · Recurring (`/app/movements/recurring`): pending confirmations, summary and the templates.
+ * Loaded on the server, so the first paint already has everything.
+ */
+import MovementsHead from '../../../components/movements/MovementsHead.astro';
+import RecurringView from '../../../components/movements/RecurringView.svelte';
+import AppLayout from '../../../layouts/AppLayout.astro';
+import { pickMessages, useTranslations } from '../../../i18n';
+import { db } from '../../../lib/db';
+import { movementsContext } from '../../../lib/movements/page';
+import { loadRecurring } from '../../../lib/recurring/repo';
+
+const { user } = Astro.locals;
+if (!user) throw new Error('Signed-in page');
+const context = await movementsContext(Astro.locals);
+const t = useTranslations(context.locale);
+const initial = await loadRecurring(db, user.id);
+const messages = pickMessages(context.locale, [
+  'recurring.',
+  'editor.type',
+  'editor.expense',
+  'editor.income',
+  'editor.amount',
+  'editor.category',
+  'movements.income',
+  'movements.noCategory',
+]);
+---
+
+<AppLayout title={t('recurring.view')} section="movements">
+  <MovementsHead view="recurring" query="" />
+  <RecurringView
+    client:load
+    initial={initial}
+    today={context.today}
+    categories={context.categories}
+    locale={context.locale}
+    currency={context.currency}
+    messages={messages}
+  />
+</AppLayout>
