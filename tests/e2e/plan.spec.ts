@@ -161,6 +161,42 @@ test.describe('plan', () => {
     expect(errors).toEqual([]);
   });
 
+  test('keyboard only: create a goal, contribute, and Esc gives focus back', async ({ page }) => {
+    await newUser(page, 'plan-keyboard');
+    const create = page.getByRole('button', { name: 'Create a goal' });
+    await create.focus();
+    await page.keyboard.press('Enter');
+    const dialog = page.getByRole('dialog', { name: 'New goal' });
+    await expect(dialog.getByLabel('Name')).toBeFocused();
+    await page.keyboard.type('Bike');
+    // Name → icon group → color group → target (each radio group is one tab stop; arrows move inside).
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('ArrowRight');
+    await expect(dialog.getByRole('radio', { name: 'Trip' })).toBeChecked();
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await expect(dialog.getByLabel('Target')).toBeFocused();
+    await page.keyboard.type('300');
+    await page.keyboard.press('Enter');
+    await expect(dialog).toBeHidden();
+    const card = page.locator('[data-goal]');
+    await expect(card).toContainText('Bike');
+
+    const contribute = card.getByRole('button', { name: 'Contribute' });
+    await contribute.focus();
+    await page.keyboard.press('Enter');
+    const sheet = page.getByRole('dialog', { name: 'Contribute to Bike' });
+    await expect(sheet.getByLabel('Amount')).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(sheet).toBeHidden();
+    await expect(contribute).toBeFocused();
+
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('75');
+    await page.keyboard.press('Enter');
+    await expect(card).toContainText('of €300.00 · 25 %');
+  });
+
   test('another user’s goals, contributions and categories behave as missing', async ({ page, context }) => {
     test.slow();
     await newUser(page, 'plan-owner');
