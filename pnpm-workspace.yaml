@@ -15,3 +15,9 @@ overrides:
   '@esbuild-kit/core-utils>esbuild': ^0.25.0
   # Compatibility: keep the emnapi runtime on the same release line as @emnapi/core (a 2.0 beta breaks astro check).
   '@emnapi/runtime': 1.11.3
+
+# GHSA-gcqx-w48m-w2h4 (deepmerge, low, no patched release): used only by @sveltejs/vite-plugin-svelte
+# at build time to merge our own Svelte config; never bundled into the server or client. Remove when a fix ships.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-gcqx-w48m-w2h4
