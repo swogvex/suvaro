@@ -1,15 +1,15 @@
 ---
 title: Aviso legal
 description: Quién está detrás de Suvaro, cómo contactar con su titular y las condiciones básicas de uso de este sitio web, según la LSSI-CE.
-updated: 2026-11-10
+updated: 2026-11-12
 ---
 
 ## Titular del sitio web
 
 En cumplimiento del artículo 10 de la Ley 34/2002 de servicios de la sociedad de la información (LSSI-CE):
 
-- **Titular**: [HOLDER NAME], persona física residente en España.
-- **Email de contacto**: [CONTACT EMAIL]
+- **Titular**: swogvex, persona física residente en España.
+- **Email de contacto**: [git.swogvex@gmail.com](mailto:git.swogvex@gmail.com)
 - **Sitio web**: suvaro.xyz
 
 Suvaro es un proyecto personal, gratuito y sin ánimo comercial. El titular no ejerce una actividad económica a través de él.

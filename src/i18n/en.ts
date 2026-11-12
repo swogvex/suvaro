@@ -53,6 +53,8 @@ export const en = {
     'A wooden boardwalk that stops in a forest clearing, with a signpost pointing back home',
   'notFound.sign': 'Home',
 
+  'offline.sceneLabel': 'Two signal posts in a clearing with the line between them cut',
+
   'signIn.title': 'Sign in',
   'signIn.titleCreate': 'Create your account',
   'signIn.description': 'Sign in to Suvaro with a passkey or a code sent to your email. No passwords.',
@@ -342,7 +344,7 @@ export const en = {
   'app.new': 'New',
   'app.search': 'Search',
   'app.undo': 'Undo',
-  'app.undoIn': 'Undo · {s} s',
+  'app.undoIn': '· {s} s',
   'app.shortcutsTitle': 'Keyboard shortcuts',
   'app.shortcutNew': 'New movement',
   'app.shortcutSearch': 'Search',

@@ -3,9 +3,9 @@ export const siteName = 'Suvaro';
 
 /**
  * Holder of the site (a private individual), used as `author` in structured data.
- * Stays null until the owner fills `[HOLDER NAME]` in the legal texts; then set it here too.
+ * Must match the holder named in the legal texts (src/content/legal).
  */
-export const holderName: string | null = null;
+export const holderName: string | null = 'swogvex';
 
 /** Sample month used in designs and on the landing (see docs: concepts). Integer cents. */
 export const sampleMonth = {

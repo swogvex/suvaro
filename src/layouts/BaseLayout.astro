@@ -14,6 +14,7 @@ import { Font } from 'astro:assets';
 import '../styles/global.css';
 import Analytics from '../components/site/Analytics.astro';
 import { defaultLocale, ogLocales, otherLocale, useTranslations, type Locale } from '../i18n';
+import { swRegisterScript } from '../lib/sw-register';
 import { themeInitScript, type ThemePrefs } from '../lib/theme';
 
 interface Props {
@@ -85,5 +86,7 @@ const ogImage = new URL(`/og/og-${locale}.png`, site).href;
       {t('a11y.skipToContent')}
     </a>
     <slot />
+    {/* Offline page for failed navigations (src/pages/sw.js.ts). Production builds only; allowed by its hash. */}
+    {import.meta.env.PROD && <script is:inline set:html={swRegisterScript} />}
   </body>
 </html>

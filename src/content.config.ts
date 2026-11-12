@@ -50,7 +50,7 @@ const pages = defineCollection({
     title: z.string(),
     lead: z.string(),
     primary: z.string(),
-    secondary: z.string(),
+    secondary: z.string().optional(),
   }),
 });
 
