@@ -250,7 +250,7 @@ export const es = {
   'settings.privacyLead': 'Descarga todo o borra tu cuenta.',
   'privacy.inactivityTitle': 'Inactividad',
   'privacy.inactivity':
-    'Si no usas Suvaro durante 30 días, borramos tu cuenta. Te escribimos el día 25 y el día 29.',
+    'Si no usas Suvaro durante 30 días, borramos tu cuenta. Te escribimos a los 25 y a los 29 días sin usarla.',
   'privacy.lastUse': 'Último uso: {date}.',
   'privacy.today': 'hoy',
   'privacy.exportTitle': 'Descargar todos mis datos',

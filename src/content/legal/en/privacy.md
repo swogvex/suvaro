@@ -32,7 +32,7 @@ Some of these companies are based in the United States. Transfers are covered by
 
 ## Inactivity and deletion
 
-If you do not use your account for 30 days, we delete it with all its data. We send you a reminder on day 25 and on day 29. Accounts that never confirm their email are deleted after 72 hours.
+If you do not use your account for 30 days, we delete it with all its data. We send you a reminder after 25 and after 29 days without use. Accounts that never confirm their email are deleted after 72 hours.
 
 When you delete your account, everything is erased at once. Our database provider keeps backups for 1 day, so deleted data disappears from backups within 1 day.
 

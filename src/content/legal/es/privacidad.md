@@ -32,7 +32,7 @@ Algunas de estas empresas tienen su sede en Estados Unidos. Las transferencias e
 
 ## Inactividad y borrado
 
-Si no usas tu cuenta durante 30 días, la borramos con todos sus datos. Te avisamos el día 25 y el día 29. Las cuentas que nunca confirman su email se borran a las 72 horas.
+Si no usas tu cuenta durante 30 días, la borramos con todos sus datos. Te avisamos a los 25 y a los 29 días sin usarla. Las cuentas que nunca confirman su email se borran a las 72 horas.
 
 Cuando borras tu cuenta, todo se elimina en el momento. Nuestro proveedor de base de datos guarda copias de seguridad durante 1 día, así que los datos borrados desaparecen de las copias en 1 día como máximo.
 

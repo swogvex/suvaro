@@ -244,7 +244,7 @@ export const en = {
   'settings.privacyLead': 'Download everything, or delete your account.',
   'privacy.inactivityTitle': 'Inactivity',
   'privacy.inactivity':
-    'If you don’t use Suvaro for 30 days we delete your account. We’ll email you on day 25 and day 29.',
+    'If you don’t use Suvaro for 30 days we delete your account. We’ll email you after 25 and after 29 days without use.',
   'privacy.lastUse': 'Last use: {date}.',
   'privacy.today': 'today',
   'privacy.exportTitle': 'Download all my data',
