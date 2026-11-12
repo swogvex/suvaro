@@ -1,0 +1,138 @@
+---
+/**
+ * "You're offline" page. Prerendered per language; the service worker (`/sw.js`) caches both versions
+ * and serves one when a navigation fails without a connection. Copy from `src/content/pages/{en,es}/offline.md`.
+ * @prop locale  Page language.
+ */
+import { getEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Logo from '../ui/Logo.astro';
+import { useTranslations, type Locale } from '../../i18n';
+import { homePath, offlinePaths } from '../../lib/routes';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const entry = await getEntry('pages', `${locale}/offline`);
+if (!entry) throw new Error(`Missing offline content for ${locale}`);
+const { title, lead, primary } = entry.data;
+---
+
+<BaseLayout title={`${title} · Suvaro`} description={lead} locale={locale} alternates={offlinePaths} noindex>
+  <div class="page">
+    <header class="container top">
+      <a class="brand" href={homePath(locale)} aria-label={t('nav.homeLabel')}>
+        <Logo />
+      </a>
+    </header>
+
+    <main id="main" class="container off">
+      <svg class="scene" viewBox="0 0 800 300" role="img" aria-label={t('offline.sceneLabel')}>
+        <ellipse class="f-soft" cx="400" cy="236" rx="320" ry="42"></ellipse>
+        <g class="f-accent grass">
+          <path d="M140 236c2-14 6-20 10-24-1 8 0 16-2 24z"></path>
+          <path d="M152 236c0-10 3-16 7-18 0 6-1 12-3 18z"></path>
+          <path d="M640 234c2-14 6-20 10-24-1 8 0 16-2 24z"></path>
+          <path d="M652 234c0-10 3-16 7-18 0 6-1 12-3 18z"></path>
+        </g>
+        <rect class="f-coral" x="226" y="96" width="12" height="140" rx="3"></rect>
+        <rect class="f-coral" x="562" y="96" width="12" height="140" rx="3"></rect>
+        <rect class="f-coral" x="210" y="84" width="44" height="18" rx="6"></rect>
+        <rect class="f-coral" x="546" y="84" width="44" height="18" rx="6"></rect>
+        <path class="s-line" d="M254 104c40 18 76 30 108 34" stroke-width="2.5" stroke-linecap="round"></path>
+        <path
+          class="s-line"
+          d="M546 104c-40 18-76 30-108 34"
+          stroke-width="2.5"
+          stroke-linecap="round"
+        ></path>
+        <g class="f-butter">
+          <rect x="384" y="122" width="12" height="12" rx="2"></rect>
+          <rect x="404" y="150" width="8" height="8" rx="2"></rect>
+          <rect x="120" y="60" width="10" height="10" rx="2"></rect>
+          <rect x="680" y="44" width="8" height="8" rx="2"></rect>
+        </g>
+      </svg>
+      <h1>{title}</h1>
+      <p class="lead">{lead}</p>
+      {/* An empty href is the current address: under the service worker, the page that failed. (Button skips empty hrefs.) */}
+      <a class="btn btn--primary btn--lg" href="">
+        {primary}
+      </a>
+    </main>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+  }
+
+  .top {
+    padding-block-start: var(--space-5);
+  }
+
+  .brand {
+    display: inline-flex;
+    color: var(--ink);
+    text-decoration: none;
+    border-radius: var(--radius-s);
+  }
+
+  .off {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-5);
+    padding-block: var(--space-6) var(--space-12);
+    text-align: center;
+  }
+
+  .scene {
+    width: 100%;
+    max-width: 40rem;
+    height: auto;
+  }
+
+  .f-soft {
+    fill: var(--accent-soft);
+  }
+
+  .f-accent {
+    fill: var(--accent);
+  }
+
+  .grass {
+    opacity: 0.75;
+  }
+
+  .f-coral {
+    fill: var(--accent-2);
+  }
+
+  .s-line {
+    fill: none;
+    stroke: var(--ink-2);
+  }
+
+  .f-butter {
+    fill: var(--cat-4);
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.25rem);
+  }
+
+  .lead {
+    max-width: 30rem;
+    color: var(--ink-2);
+    font-size: 1.125rem;
+  }
+</style>

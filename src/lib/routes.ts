@@ -55,6 +55,9 @@ export function signInPath(locale: Locale, mode: 'sign-in' | 'create' = 'sign-in
   return mode === 'create' ? `${signInPaths[locale]}?mode=create` : signInPaths[locale];
 }
 
+/** Offline page per language (noindex; not in the sitemap). The service worker serves it for failed navigations. */
+export const offlinePaths: Alternates = { en: '/offline', es: '/es/sin-conexion' };
+
 /** App routes have no language prefix: they use the profile language. */
 export const appPaths = {
   app: '/app',

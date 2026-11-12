@@ -55,6 +55,8 @@ export const es = {
     'Una pasarela de madera que se corta en un claro del bosque, con un poste que señala el camino de vuelta',
   'notFound.sign': 'Inicio',
 
+  'offline.sceneLabel': 'Dos postes de señal en un claro con la línea entre ellos cortada',
+
   'signIn.title': 'Entrar',
   'signIn.titleCreate': 'Crea tu cuenta',
   'signIn.description':
@@ -348,7 +350,7 @@ export const es = {
   'app.new': 'Nuevo',
   'app.search': 'Buscar',
   'app.undo': 'Deshacer',
-  'app.undoIn': 'Deshacer · {s} s',
+  'app.undoIn': '· {s} s',
   'app.shortcutsTitle': 'Atajos de teclado',
   'app.shortcutNew': 'Nuevo movimiento',
   'app.shortcutSearch': 'Buscar',

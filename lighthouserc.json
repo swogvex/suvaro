@@ -11,6 +11,8 @@
         "http://localhost:4321/legal/credits",
         "http://localhost:4321/sign-in",
         "http://localhost:4321/es/acceso",
+        "http://localhost:4321/offline",
+        "http://localhost:4321/es/sin-conexion",
         "http://localhost:4321/demo",
         "http://localhost:4321/es/demo",
         "http://localhost:4321/demo/stats"
@@ -30,7 +32,7 @@
           }
         },
         {
-          "matchingUrlPattern": "/(sign-in|es/acceso)$",
+          "matchingUrlPattern": "/(sign-in|es/acceso|offline|es/sin-conexion)$",
           "assertions": {
             "categories:performance": ["error", { "minScore": 0.95, "aggregationMethod": "median-run" }],
             "categories:accessibility": ["error", { "minScore": 1 }],

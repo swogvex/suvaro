@@ -4,6 +4,7 @@ import node from '@astrojs/node';
 import svelte from '@astrojs/svelte';
 import vercel from '@astrojs/vercel';
 import { demoQueueScriptHash } from './src/lib/demo-csp.ts';
+import { swRegisterScriptHash } from './src/lib/sw-csp.ts';
 import { themeInitScriptHash } from './src/lib/theme-csp.ts';
 
 // CI and local e2e run a plain Node server; Vercel builds use the Vercel adapter.
@@ -63,8 +64,11 @@ export default defineConfig({
       ],
       // The inline theme script runs before first paint on every page; its hash is allowed globally
       // (Astro.csp.insertScriptHash does not reach the static headers of prerendered pages). The demo's
-      // inline fetch queue is allowed the same way.
-      scriptDirective: { resources: ["'self'"], hashes: [themeInitScriptHash, demoQueueScriptHash] },
+      // inline fetch queue and the service worker registration are allowed the same way.
+      scriptDirective: {
+        resources: ["'self'"],
+        hashes: [themeInitScriptHash, demoQueueScriptHash, swRegisterScriptHash],
+      },
       styleDirective: { resources: ["'self'"] },
     },
   },
