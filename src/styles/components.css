@@ -394,6 +394,9 @@ a.segmented__item[aria-current='page'] {
     background: var(--surface);
     color: var(--ink);
     box-shadow: var(--shadow-float);
+    /* The global "no visible scrollbars" rule (base.css) uses `*`, which never matches a pseudo-element,
+       so the open list needs its own. It still scrolls with wheel, touch and the arrow keys. */
+    scrollbar-width: none;
   }
 
   select.field__input option {
