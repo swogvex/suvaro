@@ -27,11 +27,11 @@ const t = useTranslations(locale);
     <p class="toast__text" data-toast-text>
       {message}
     </p>
-    <button class="toast__undo" type="button" aria-label={t('app.undo')} data-toast-undo hidden>
-      <!-- The countdown is visual only: a live region must not announce every second. -->
-      <span aria-hidden="true" data-toast-count data-label={t('app.undoIn')}>
-        {t('app.undo')}
-      </span>
+    <button class="toast__undo" type="button" data-toast-undo hidden>
+      <!-- Name = the visible word (WCAG 2.5.3). The countdown is visual only: a live region must not
+           announce every second. -->
+      <span>{t('app.undo')}</span>{' '}
+      <span aria-hidden="true" data-toast-count data-label={t('app.undoIn')}></span>
     </button>
     <button class="toast__close" type="button" aria-label={t('app.toastClose')} data-toast-close>
       <Icon name="x" />
