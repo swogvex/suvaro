@@ -339,11 +339,24 @@ const slots = [
     background: var(--accent-soft);
   }
 
+  /* The status badge never moves the layout: phones give it a fixed row under the name (the card's height
+     comes from the preview beside it); desktop lays it over the preview's corner (below). */
+  .theme-card {
+    position: relative;
+  }
+
   .theme-card__foot {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-1) var(--space-2);
     align-items: center;
+  }
+
+  .theme-card__status {
+    grid-column: 1 / -1;
+    justify-self: start;
+    max-width: 100%;
+    white-space: normal;
   }
 
   .theme-card__foot input {
@@ -355,7 +368,6 @@ const slots = [
 
   .theme-card__name {
     display: grid;
-    flex: 1;
     font-weight: 500;
   }
 
@@ -387,6 +399,13 @@ const slots = [
 
     .preview__hero {
       font-size: 1.125rem;
+    }
+
+    .theme-card__status {
+      position: absolute;
+      inset-block-start: calc(var(--space-3) + var(--space-2));
+      inset-inline-end: calc(var(--space-3) + var(--space-2));
+      box-shadow: var(--shadow);
     }
   }
 </style>

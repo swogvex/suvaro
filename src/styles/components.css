@@ -360,6 +360,82 @@ a.segmented__item[aria-current='page'] {
   outline-offset: 0;
 }
 
+/* Selects: the open list is exactly as wide as the field and follows the theme (customizable select,
+   Chromium 135+; long names wrap instead of widening the list). Other browsers keep their native list. */
+@supports (appearance: base-select) {
+  select.field__input,
+  select.field__input::picker(select) {
+    appearance: base-select;
+  }
+
+  select.field__input {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    cursor: pointer;
+  }
+
+  select.field__input::picker-icon {
+    color: var(--ink-2);
+    transition: rotate var(--dur) var(--ease);
+  }
+
+  select.field__input:open::picker-icon {
+    rotate: 180deg;
+  }
+
+  select.field__input::picker(select) {
+    inline-size: anchor-size(self-inline);
+    max-block-size: min(22rem, 60dvh);
+    margin-block: var(--space-1);
+    padding: var(--space-1);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-float);
+  }
+
+  select.field__input option {
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-xs);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  select.field__input option::checkmark {
+    display: none;
+  }
+
+  select.field__input option:hover,
+  select.field__input option:focus-visible {
+    background: var(--surface-2);
+    outline: none;
+  }
+
+  select.field__input option:checked {
+    background: var(--accent-soft);
+    font-weight: 600;
+  }
+
+  select.field__input optgroup {
+    padding-block-start: var(--space-1);
+    color: var(--ink-2);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  select.field__input optgroup option {
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 400;
+  }
+
+  select.field__input optgroup option:checked {
+    font-weight: 600;
+  }
+}
+
 .field__input[aria-invalid='true'] {
   border-color: var(--negative);
 }

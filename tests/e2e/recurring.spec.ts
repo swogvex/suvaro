@@ -138,8 +138,13 @@ test.describe('recurring', () => {
 
     await page.keyboard.press('Enter');
     await page.keyboard.type('2,99');
-    await dialog.getByLabel('Category').focus();
+    // The customizable select opens its list on ArrowDown; arrows move, Enter picks (a listbox).
+    const category = dialog.getByLabel('Category');
+    await category.focus();
     await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(category).not.toHaveValue('');
     await dialog.getByRole('radio', { name: 'Ask me first' }).focus();
     await page.keyboard.press('Space');
     await dialog.getByLabel('Amount').focus();
