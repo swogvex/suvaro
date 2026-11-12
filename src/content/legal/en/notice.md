@@ -1,15 +1,15 @@
 ---
 title: Legal notice
 description: Who runs Suvaro, how to contact the holder and the basic conditions for using this website, as required by Spain's LSSI-CE.
-updated: 2026-11-10
+updated: 2026-11-12
 ---
 
 ## Holder of the website
 
 In line with article 10 of Spain's Law 34/2002 on information society services (LSSI-CE):
 
-- **Holder**: [HOLDER NAME], a private individual resident in Spain.
-- **Contact email**: [CONTACT EMAIL]
+- **Holder**: swogvex, a private individual resident in Spain.
+- **Contact email**: [git.swogvex@gmail.com](mailto:git.swogvex@gmail.com)
 - **Website**: suvaro.xyz
 
 Suvaro is a free, non-commercial personal project. The holder does not carry out an economic activity through it.

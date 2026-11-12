@@ -1,12 +1,12 @@
 ---
 title: Terms of use
 description: The short terms for using Suvaro, a free personal expense tracker. Numbers have no monetary value and nothing in Suvaro is financial advice.
-updated: 2026-11-10
+updated: 2026-11-12
 ---
 
 ## The service
 
-Suvaro is a free web app to note your own income and expenses by hand. It is offered by [HOLDER NAME] as a personal, non-commercial project.
+Suvaro is a free web app to note your own income and expenses by hand. It is offered by swogvex as a personal, non-commercial project.
 
 ## Personal use
 

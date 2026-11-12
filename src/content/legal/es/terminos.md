@@ -1,12 +1,12 @@
 ---
 title: Términos de uso
 description: Los términos breves para usar Suvaro, una app gratuita de control de gastos. Los números no tienen valor monetario y nada es asesoramiento financiero.
-updated: 2026-11-10
+updated: 2026-11-12
 ---
 
 ## El servicio
 
-Suvaro es una aplicación web gratuita para apuntar a mano tus propios ingresos y gastos. La ofrece [HOLDER NAME] como proyecto personal y sin ánimo comercial.
+Suvaro es una aplicación web gratuita para apuntar a mano tus propios ingresos y gastos. La ofrece swogvex como proyecto personal y sin ánimo comercial.
 
 ## Uso personal
 

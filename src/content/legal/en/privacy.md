@@ -1,12 +1,12 @@
 ---
 title: Privacy policy
 description: What personal data Suvaro keeps, why, for how long, who processes it and how to exercise your rights under the GDPR.
-updated: 2026-11-10
+updated: 2026-11-12
 ---
 
 ## Who is responsible
 
-The controller is [HOLDER NAME], contact [CONTACT EMAIL]. See the [Legal notice](/legal/notice).
+The controller is swogvex, contact [git.swogvex@gmail.com](mailto:git.swogvex@gmail.com). See the [Legal notice](/legal/notice).
 
 ## What we keep and why
 
@@ -40,7 +40,7 @@ When you delete your account, everything is erased at once. Our database provide
 
 - **Access and portability**: Settings › Privacy › Download all my data.
 - **Erasure**: Settings › Privacy › Delete my account. It is immediate.
-- **Rectification, objection and restriction**: write to [CONTACT EMAIL].
+- **Rectification, objection and restriction**: write to [git.swogvex@gmail.com](mailto:git.swogvex@gmail.com).
 
 You can also complain to the Spanish Data Protection Agency (AEPD, aepd.es).
 

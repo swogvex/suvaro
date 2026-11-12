@@ -1,12 +1,12 @@
 ---
 title: Política de privacidad
 description: Qué datos personales guarda Suvaro, para qué, durante cuánto tiempo, quién los trata y cómo ejercer tus derechos según el RGPD.
-updated: 2026-11-10
+updated: 2026-11-12
 ---
 
 ## Responsable
 
-El responsable del tratamiento es [HOLDER NAME], contacto [CONTACT EMAIL]. Consulta el [Aviso legal](/es/legal/aviso-legal).
+El responsable del tratamiento es swogvex, contacto [git.swogvex@gmail.com](mailto:git.swogvex@gmail.com). Consulta el [Aviso legal](/es/legal/aviso-legal).
 
 ## Qué guardamos y para qué
 
@@ -40,7 +40,7 @@ Cuando borras tu cuenta, todo se elimina en el momento. Nuestro proveedor de bas
 
 - **Acceso y portabilidad**: Ajustes › Privacidad › Descargar todos mis datos.
 - **Supresión**: Ajustes › Privacidad › Borrar mi cuenta. Es inmediato.
-- **Rectificación, oposición y limitación**: escribe a [CONTACT EMAIL].
+- **Rectificación, oposición y limitación**: escribe a [git.swogvex@gmail.com](mailto:git.swogvex@gmail.com).
 
 También puedes reclamar ante la Agencia Española de Protección de Datos (AEPD, aepd.es).
 
