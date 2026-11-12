@@ -24,7 +24,7 @@ dataBlock:
     - Sin conexión con bancos. Tú escribes los números, así que nadie más ve tus cuentas.
     - Sin cookies para visitantes y sin anuncios. Solo una cookie para mantener la sesión cuando tienes cuenta.
     - Guardados en la Unión Europea. Descarga todo o borra tu cuenta cuando quieras.
-    - Las cuentas inactivas se borran a los 30 días. Antes te escribimos el día 25 y el día 29.
+    - Las cuentas se borran tras 30 días sin uso. Antes te escribimos a los 25 y a los 29 días sin usarla.
 finalCta:
   title: Empieza tu primer mes hoy
   text: Se configura en un minuto y es gratis.

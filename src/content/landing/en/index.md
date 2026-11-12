@@ -24,7 +24,7 @@ dataBlock:
     - No bank connections. You type the numbers, so nobody else sees your accounts.
     - No cookies for visitors and no ads. Only a sign-in cookie once you have an account.
     - Stored in the European Union. Download everything or delete your account whenever you want.
-    - Inactive accounts are deleted after 30 days. We email you on day 25 and day 29 first.
+    - Accounts are deleted after 30 days without use. We email you first, after 25 and after 29 days without use.
 finalCta:
   title: Start your first month today
   text: It takes a minute to set up and it is free.

@@ -22,7 +22,7 @@ Suvaro se ofrece tal cual, sin garantías. Hacemos lo posible para que funcione 
 
 ## Cuentas inactivas
 
-Las cuentas sin actividad durante 30 días se borran con todos sus datos. Antes te escribimos el día 25 y el día 29.
+Las cuentas sin actividad durante 30 días se borran con todos sus datos. Antes te escribimos a los 25 y a los 29 días sin actividad.
 
 ## Baja
 

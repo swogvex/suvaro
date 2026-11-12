@@ -22,7 +22,7 @@ Suvaro is provided as it is, without warranties. We do our best to keep it worki
 
 ## Inactive accounts
 
-Accounts with no activity for 30 days are deleted with all their data. We email you on day 25 and day 29 before that happens.
+Accounts with no activity for 30 days are deleted with all their data. We email you after 25 and after 29 days without activity, before that happens.
 
 ## Ending
 
