@@ -1,6 +1,7 @@
 ---
 /**
- * Settings › Appearance: mode (light / dark / system) and a day and a night theme (blue, red, green).
+ * Settings › Appearance: mode (light / dark / system), background (dotted grid or plain) and a day and a
+ * night theme (blue, red, green).
  * Each choice applies to the whole page at once (`applyPrefs`) and is saved to the profile
  * (`PATCH /api/profile`), so it follows the user to every device and is painted before first paint there.
  * Previews use the real palettes through `[data-theme-scope]` (tokens.css). Needs JS to save; without it
@@ -51,6 +52,13 @@ const slots = [
     status: resolved === 'dark' ? t('appearance.activeNow') : t('appearance.usedInDark'),
   },
 ] as const;
+
+// The background previews use the page's own palette, so they always show the theme in use now.
+const groundOptions = [
+  { value: 'dots', name: t('appearance.dots'), hint: t('appearance.default') },
+  { value: 'plain', name: t('appearance.plain'), hint: t('appearance.plainHint') },
+] as const;
+const groundNote = t(profile.ground === 'plain' ? 'appearance.notePlain' : 'appearance.noteDots');
 ---
 
 <SettingsLayout current="appearance">
@@ -66,6 +74,8 @@ const slots = [
     data-active={t('appearance.activeNow')}
     data-used-light={t('appearance.usedInLight')}
     data-used-dark={t('appearance.usedInDark')}
+    data-note-dots={t('appearance.noteDots')}
+    data-note-plain={t('appearance.notePlain')}
     data-save-error={t('app.themeSaveError')}
   >
     <Card as="section" class="section" aria-labelledby="mode-title">
@@ -86,6 +96,47 @@ const slots = [
       <p class="note" data-mode-note aria-live="polite">
         {initialNote}
       </p>
+    </Card>
+
+    <Card as="section" class="section">
+      <fieldset class="themes">
+        <legend class="section__title">{t('appearance.groundTitle')}</legend>
+        <p class="section__lead">{t('appearance.groundLead')}</p>
+        <div class="grounds">
+          {groundOptions.map((option) => (
+            <label class="theme-card ground-card">
+              <span class:list={['preview', 'ground', `ground--${option.value}`]} aria-hidden="true">
+                <span class="ground__sheet">
+                  <span class="ground__amount">{amount}</span>
+                  <span class="ground__row">
+                    <span class="ground__tile" />
+                    <span class="ground__line" />
+                  </span>
+                  <span class="ground__row">
+                    <span class="ground__tile ground__tile--transport" />
+                    <span class="ground__line ground__line--short" />
+                  </span>
+                </span>
+              </span>
+              <span class="theme-card__foot">
+                <input
+                  type="radio"
+                  name="ground"
+                  value={option.value}
+                  checked={profile.ground === option.value}
+                />
+                <span class="theme-card__name">
+                  {option.name}
+                  <span class="theme-card__default">{option.hint}</span>
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+        <p class="note" data-ground-note aria-live="polite">
+          {groundNote}
+        </p>
+      </fieldset>
     </Card>
 
     {slots.map((slot) => (
@@ -138,7 +189,14 @@ const slots = [
 
 <script>
   import { call } from '../../../lib/movements/client';
-  import { applyPrefs, parseAccent, parseMode, readPrefs, type ThemePrefs } from '../../../lib/theme';
+  import {
+    applyPrefs,
+    parseAccent,
+    parseGround,
+    parseMode,
+    readPrefs,
+    type ThemePrefs,
+  } from '../../../lib/theme';
   import { showToast } from '../../../lib/toast';
 
   const panel = document.querySelector<HTMLElement>('[data-appearance]');
@@ -149,7 +207,13 @@ const slots = [
     const prefs = readPrefs();
     if (!prefs) return;
     const resolved = root.dataset['mode'] === 'dark' ? 'dark' : 'light';
-    const values: Record<string, string> = { mode: prefs.mode, themeDay: prefs.day, themeNight: prefs.night };
+    const ground = root.dataset['ground'] === 'plain' ? 'plain' : 'dots';
+    const values: Record<string, string> = {
+      mode: prefs.mode,
+      themeDay: prefs.day,
+      themeNight: prefs.night,
+      ground,
+    };
     for (const input of box.querySelectorAll<HTMLInputElement>('input[type="radio"]')) {
       input.checked = values[input.name] === input.value;
     }
@@ -161,6 +225,8 @@ const slots = [
           : 'noteSystemLight'
         : `note${prefs.mode === 'dark' ? 'Dark' : 'Light'}`;
     if (note) note.textContent = box.dataset[key] ?? '';
+    const groundNote = box.querySelector<HTMLElement>('[data-ground-note]');
+    if (groundNote) groundNote.textContent = box.dataset[ground === 'plain' ? 'notePlain' : 'noteDots'] ?? '';
     for (const badge of box.querySelectorAll<HTMLElement>('[data-status]')) {
       const mode = badge.dataset['status'];
       const input = badge.closest('label')?.querySelector<HTMLInputElement>('input');
@@ -181,13 +247,16 @@ const slots = [
       const prefs = readPrefs();
       if (!(input instanceof HTMLInputElement) || !prefs) return;
       const next: ThemePrefs = { ...prefs };
-      if (input.name === 'mode') next.mode = parseMode(input.value);
+      if (input.name === 'ground') root.dataset['ground'] = parseGround(input.value);
+      else if (input.name === 'mode') next.mode = parseMode(input.value);
       else if (input.name === 'themeDay') next.day = parseAccent(input.value);
       else if (input.name === 'themeNight') next.night = parseAccent(input.value);
       else return;
-      applyPrefs(next);
+      if (input.name !== 'ground') {
+        applyPrefs(next);
+        document.dispatchEvent(new CustomEvent('suvaro:theme'));
+      }
       render(panel);
-      document.dispatchEvent(new CustomEvent('suvaro:theme'));
       saving = saving
         .then(() => call('PATCH', '/api/profile', { [input.name]: input.value }))
         .catch(() => showToast(panel.dataset['saveError'] ?? ''));
@@ -381,6 +450,83 @@ const slots = [
     display: none;
   }
 
+  /* With a plain background, the theme previews drop their dots too, so they match the page. */
+  :global(html[data-ground='plain']) .preview:not(.ground--dots) {
+    background-image: none;
+  }
+
+  /* Background: two cards side by side even on phones, each a mini page in the palette in use now. */
+  .grounds {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .ground-card {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .ground {
+    padding: var(--space-3);
+    background-size: 10px 10px;
+    transition: background-color var(--dur) var(--ease);
+  }
+
+  .ground--plain {
+    background-image: none;
+  }
+
+  .ground__sheet {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .ground__amount {
+    font-family: var(--font-display);
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: var(--tracking-number);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ground__row {
+    display: flex;
+    gap: var(--space-1);
+    align-items: center;
+  }
+
+  .ground__tile {
+    flex: none;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 3px;
+    background: var(--cat-1);
+  }
+
+  .ground__tile--transport {
+    background: var(--cat-5);
+  }
+
+  .ground__line {
+    width: 70%;
+    height: 0.3125rem;
+    border-radius: var(--radius-track);
+    background: var(--line);
+  }
+
+  .ground__line--short {
+    width: 45%;
+  }
+
   @media (min-width: 40rem) {
     .themes__grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -397,8 +543,13 @@ const slots = [
       padding: var(--space-3);
     }
 
-    .preview__hero {
+    .preview__hero,
+    .ground__amount {
       font-size: 1.125rem;
+    }
+
+    .ground {
+      padding: var(--space-5) var(--space-6);
     }
 
     .theme-card__status {

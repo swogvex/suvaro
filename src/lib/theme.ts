@@ -6,10 +6,13 @@
  */
 export const modes = ['system', 'light', 'dark'] as const;
 export const accents = ['blue', 'red', 'green'] as const;
+/** Page background: the dotted grid (default) or plain. `<html data-ground="plain">` hides the dots. */
+export const grounds = ['dots', 'plain'] as const;
 
 export type Mode = (typeof modes)[number];
 export type ResolvedMode = Exclude<Mode, 'system'>;
 export type Accent = (typeof accents)[number];
+export type Ground = (typeof grounds)[number];
 
 export const MODE_STORAGE_KEY = 'suvaro-mode';
 
@@ -56,6 +59,10 @@ export function parseAccent(value: unknown): Accent {
   return typeof value === 'string' && (accents as readonly string[]).includes(value)
     ? (value as Accent)
     : 'blue';
+}
+
+export function parseGround(value: unknown): Ground {
+  return value === 'plain' ? 'plain' : 'dots';
 }
 
 /** Applies a signed-in choice to the whole page at once (no reload) and repaints the browser UI color. */

@@ -1,0 +1,1 @@
+ALTER TABLE `profile` ADD `ground` text DEFAULT 'dots' NOT NULL;

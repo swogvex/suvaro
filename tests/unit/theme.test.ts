@@ -72,6 +72,7 @@ describe('profile patch', () => {
   it('accepts any subset of the theme fields', () => {
     expect(profilePatchInput.safeParse({ mode: 'dark' }).success).toBe(true);
     expect(profilePatchInput.safeParse({ themeDay: 'red', themeNight: 'green' }).success).toBe(true);
+    expect(profilePatchInput.safeParse({ ground: 'plain' }).success).toBe(true);
   });
 
   it('refuses empty bodies, unknown keys and values outside the lists', () => {
@@ -79,5 +80,6 @@ describe('profile patch', () => {
     expect(profilePatchInput.safeParse({ mode: 'dark', userId: 'x' }).success).toBe(false);
     expect(profilePatchInput.safeParse({ mode: 'sepia' }).success).toBe(false);
     expect(profilePatchInput.safeParse({ themeNight: 'purple' }).success).toBe(false);
+    expect(profilePatchInput.safeParse({ ground: 'stripes' }).success).toBe(false);
   });
 });

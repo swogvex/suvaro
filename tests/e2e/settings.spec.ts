@@ -136,6 +136,37 @@ test.describe('settings', () => {
     expect(errors).toEqual([]);
   });
 
+  test('the plain background hides the dots at once and follows the user to another device', async ({
+    page,
+  }) => {
+    const errors = collectErrors(page);
+    const email = await newUser(page, 'ground');
+    const bodyImage = (target: Page) =>
+      target.evaluate(() => getComputedStyle(document.body).backgroundImage);
+    await openAppearance(page);
+    const ground = page.getByRole('group', { name: 'Background' });
+    await expect(ground.getByRole('radio', { name: /Dotted/ })).toBeChecked();
+    expect(await bodyImage(page)).toContain('radial-gradient');
+    await expect(page.getByText('Dots on: a soft grid sits behind every page.')).toBeVisible();
+
+    const saved = page.waitForResponse((r) => r.url().endsWith('/api/profile'));
+    await ground.getByRole('radio', { name: /Plain/ }).check();
+    expect((await saved).status()).toBe(200);
+    await expect(html(page)).toHaveAttribute('data-ground', 'plain');
+    expect(await bodyImage(page)).toBe('none');
+    await expect(page.getByText(/^Plain on:/)).toBeVisible();
+    await expectNoAxeViolationsInThemes(page);
+
+    const other = await newContextWithIp(page.context());
+    const otherPage = await other.newPage();
+    await signInWithCode(otherPage, email, 2);
+    await expect(otherPage).toHaveURL(/\/app$/);
+    await expect(html(otherPage)).toHaveAttribute('data-ground', 'plain');
+    expect(await bodyImage(otherPage)).toBe('none');
+    await other.close();
+    expect(errors).toEqual([]);
+  });
+
   test('the light/dark toggle leaves system mode and is saved too', async ({ page }, info) => {
     await page.emulateMedia({ colorScheme: 'light' });
     await newUser(page, 'toggle');

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { locales } from '../../i18n';
 import { avatars } from '../avatars';
 import { isCurrency } from '../onboarding';
-import { accents, modes } from '../theme';
+import { accents, grounds, modes } from '../theme';
 
 export const DISPLAY_NAME_MAX = 40;
 
@@ -26,6 +26,7 @@ export const profilePatchInput = z
     mode: z.enum(modes),
     themeDay: z.enum(accents),
     themeNight: z.enum(accents),
+    ground: z.enum(grounds),
   })
   .partial()
   .refine((patch) => Object.keys(patch).length > 0);

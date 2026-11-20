@@ -338,6 +338,15 @@ export const es = {
   'appearance.activeNow': 'Activo ahora',
   'appearance.usedInLight': 'Se usa en modo claro',
   'appearance.usedInDark': 'Se usa en modo oscuro',
+  'appearance.groundTitle': 'Fondo',
+  'appearance.groundLead':
+    'La cuadrícula de puntos es parte del estilo de Suvaro. Si te molesta, pásate al fondo liso y deja a la vista solo tus cifras.',
+  'appearance.dots': 'Con puntos',
+  'appearance.plain': 'Liso',
+  'appearance.plainHint': 'Menos distracciones',
+  'appearance.noteDots': 'Puntos activados: una cuadrícula suave detrás de cada página.',
+  'appearance.notePlain':
+    'Liso activado: solo el color de tu tema detrás de cada página, sin nada que distraiga.',
   'app.offline': 'No tienes conexión. Podrás guardar de nuevo cuando vuelva.',
   'app.verifyBanner':
     'Confirma tu email para conservar la cuenta: las cuentas sin confirmar se borran a los 3 días del registro.',
