@@ -47,6 +47,12 @@ html {
   background-size: 20px 20px;
 }
 
+/* Settings › Appearance › Background "Plain": the theme color alone, without the dotted grid. */
+html[data-ground='plain'],
+html[data-ground='plain'] body {
+  background-image: none;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;

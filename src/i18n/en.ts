@@ -332,6 +332,14 @@ export const en = {
   'appearance.activeNow': 'Active now',
   'appearance.usedInLight': 'Used in light mode',
   'appearance.usedInDark': 'Used in dark mode',
+  'appearance.groundTitle': 'Background',
+  'appearance.groundLead':
+    'The dotted grid is part of how Suvaro looks. If it gets in your way, go plain and keep only your numbers in view.',
+  'appearance.dots': 'Dotted',
+  'appearance.plain': 'Plain',
+  'appearance.plainHint': 'Fewer distractions',
+  'appearance.noteDots': 'Dots on: a soft grid sits behind every page.',
+  'appearance.notePlain': 'Plain on: only your theme color behind every page, nothing in the way.',
   'app.offline': 'You’re offline. Saving will work again when you’re back.',
   'app.verifyBanner':
     'Confirm your email to keep your account: unconfirmed accounts are deleted 3 days after sign-up.',

@@ -24,5 +24,6 @@ export function editableFields(row: Profile) {
     mode: row.mode,
     themeDay: row.themeDay,
     themeNight: row.themeNight,
+    ground: row.ground,
   };
 }

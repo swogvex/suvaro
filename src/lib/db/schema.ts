@@ -169,6 +169,10 @@ export const profile = sqliteTable('profile', {
   themeNight: text('theme_night', { enum: ['blue', 'red', 'green'] })
     .notNull()
     .default('blue'),
+  /** Page background: the dotted grid, or the plain theme color (Settings › Appearance). */
+  ground: text('ground', { enum: ['dots', 'plain'] })
+    .notNull()
+    .default('dots'),
   onboardingDone: integer('onboarding_done', { mode: 'boolean' }).notNull().default(false),
   startingSavingsCents: integer('starting_savings_cents'),
   lastActiveAt: timestamp('last_active_at').notNull(),
