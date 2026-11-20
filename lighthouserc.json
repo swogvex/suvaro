@@ -17,7 +17,7 @@
         "http://localhost:4321/es/demo",
         "http://localhost:4321/demo/stats"
       ],
-      "numberOfRuns": 3,
+      "numberOfRuns": 5,
       "settings": { "chromeFlags": "--headless=new --no-sandbox" }
     },
     "assert": {
