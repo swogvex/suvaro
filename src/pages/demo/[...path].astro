@@ -9,7 +9,8 @@ import { isDemoView } from '../../lib/demo/views';
 export const prerender = false;
 
 const view = Astro.params['path'] ?? '';
-if (!isDemoView(view)) return new Response(null, { status: 404 });
+// Home ('') has its own page (`index.astro`).
+if (!isDemoView(view) || view === '') return new Response(null, { status: 404 });
 ---
 
 <DemoPage locale="en" view={view} />

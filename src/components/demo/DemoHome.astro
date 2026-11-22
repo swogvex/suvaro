@@ -1,0 +1,43 @@
+---
+/**
+ * Home of the demo (`/demo`, `/es/demo`). Its own page, apart from `DemoPage`, so it bundles only the Home
+ * island's CSS: with every view in one route, Home also loaded the other views' styles before its first paint.
+ * @prop locale  Demo language.
+ */
+import HomeDashboard from '../home/HomeDashboard.svelte';
+import DemoLayout from '../../layouts/DemoLayout.astro';
+import { pickMessages, useTranslations, type Locale } from '../../i18n';
+import { demoSetup } from '../../lib/demo/page';
+import { homeData } from '../../lib/demo/store';
+import { chooseCycle } from '../../lib/home/cycle-param';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const { today, state, common } = demoSetup(Astro.request, locale);
+const cycleChoice =
+  chooseCycle(Astro.url.searchParams.get('cycle'), state.startDay, today) ??
+  chooseCycle(null, state.startDay, today);
+---
+
+<DemoLayout title={t('app.home')} section="home" state={state} view="">
+  {cycleChoice && (
+    <HomeDashboard
+      client:load
+      initial={homeData(state, cycleChoice.cycle, cycleChoice.previousCycle)}
+      current={cycleChoice.current}
+      startDay={state.startDay}
+      name={state.name}
+      messages={pickMessages(locale, [
+        'home.',
+        'movements.income',
+        'movements.noCategory',
+        'movements.recurring',
+      ])}
+      {...common}
+    />
+  )}
+</DemoLayout>
