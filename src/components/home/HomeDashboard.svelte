@@ -289,6 +289,13 @@
     gap: var(--space-1);
   }
 
+  /* Phones always stack: at ~412 px one row fits only with the web font, so it jumped when the font loaded. */
+  @media (max-width: 25.99rem) {
+    .home__hello {
+      flex-basis: 100%;
+    }
+  }
+
   .home__date {
     color: var(--ink-2);
     font-size: 0.875rem;
