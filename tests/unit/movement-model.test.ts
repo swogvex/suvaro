@@ -39,7 +39,19 @@ describe('movement validation', () => {
   it('accepts a valid expense and trims the note', () => {
     const parsed = createInput.parse(valid);
     expect(parsed.note).toBe('Coffee');
-    expect(parsed.repeat).toBe(false);
+    expect(parsed.repeat).toBeNull();
+  });
+
+  it('reads how a new movement repeats (true = monthly, from older clients)', () => {
+    const repeatOf = (repeat: unknown) => createInput.parse({ ...valid, repeat }).repeat;
+    expect(repeatOf(false)).toBeNull();
+    expect(repeatOf(null)).toBeNull();
+    expect(repeatOf(true)).toEqual({ frequency: 'monthly', intervalDays: null });
+    expect(repeatOf({ frequency: 'yearly' })).toEqual({ frequency: 'yearly', intervalDays: null });
+    expect(repeatOf({ frequency: 'every_n_days', intervalDays: 10 })).toEqual({
+      frequency: 'every_n_days',
+      intervalDays: 10,
+    });
   });
 
   it.each([
@@ -52,6 +64,10 @@ describe('movement validation', () => {
     ['expense without category', { categoryId: null }],
     ['bad id', { id: 'not-a-ulid' }],
     ['unknown key', { userId: 'someone' }],
+    ['unknown frequency', { repeat: { frequency: 'daily' } }],
+    ['every N days without days', { repeat: { frequency: 'every_n_days' } }],
+    ['every N days out of range', { repeat: { frequency: 'every_n_days', intervalDays: 1 } }],
+    ['interval on a yearly repeat', { repeat: { frequency: 'yearly', intervalDays: 10 } }],
   ])('rejects %s', (_label, change) => {
     expect(createInput.safeParse({ ...valid, ...change }).success).toBe(false);
   });

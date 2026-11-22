@@ -7,6 +7,7 @@
  */
 import { showPlanDot, showToast } from '../toast';
 import type { Movement } from './model';
+import type { Schedule } from '../recurring/schedule';
 
 export const MOVEMENT_EVENT = 'suvaro:movement';
 export const EDITOR_EVENT = 'suvaro:editor';
@@ -138,7 +139,12 @@ export interface WriteMessages {
 }
 
 /** Creates a movement optimistically. Undo deletes it again. */
-export function createMovement(movement: Movement, repeat: boolean, messages: WriteMessages): Promise<void> {
+/** `repeat` also creates a recurring template from the movement's date (null = a one-off movement). */
+export function createMovement(
+  movement: Movement,
+  repeat: Pick<Schedule, 'frequency' | 'intervalDays'> | null,
+  messages: WriteMessages,
+): Promise<void> {
   emitChange({ kind: 'upsert', movement });
   let undone = false;
   const saved = call('POST', '/api/movements', { id: movement.id, ...body(movement), repeat });

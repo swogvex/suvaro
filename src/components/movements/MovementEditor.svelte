@@ -27,6 +27,10 @@
   } from '../../lib/movements/client';
   import { movementAmount, movementName } from '../../lib/movements/format';
   import { NOTE_MAX, type CategoryOption, type Movement, type MovementType } from '../../lib/movements/model';
+  import { format } from '../../lib/recurring/format';
+  import { frequencies } from '../../lib/recurring/model';
+  import { MAX_INTERVAL_DAYS, MIN_INTERVAL_DAYS, type Frequency } from '../../lib/recurring/schedule';
+  import type { UiKey } from '../../i18n';
   import { inCycle } from '../../lib/cycle';
   import { centsToInput, currencySymbol, parseAmount } from '../../lib/money';
   import { budgetAfterSave } from '../../lib/plan/calc';
@@ -47,7 +51,7 @@
   const t = $derived(translator(messages));
   const TOP_CATEGORIES = 8;
   type DateChoice = 'today' | 'yesterday' | 'pick';
-  type Field = 'amount' | 'category' | 'date';
+  type Field = 'amount' | 'category' | 'date' | 'interval';
 
   let dialog: HTMLDialogElement | undefined = $state();
   let amountInput: HTMLInputElement | undefined = $state();
@@ -59,6 +63,8 @@
   let pickedDate = $state('');
   let note = $state('');
   let repeat = $state(false);
+  let frequency = $state<Frequency>('monthly');
+  let intervalText = $state('');
   let showAll = $state(false);
   let errors = $state<Partial<Record<Field, string>>>({});
   let online = $state(true);
@@ -76,7 +82,26 @@
   const top = $derived(byUse.slice(0, TOP_CATEGORIES));
   const hiddenSelected = $derived(categoryId !== null && !top.some((c) => c.id === categoryId));
   const visibleCategories = $derived(showAll || hiddenSelected ? categories : top);
-  const repeatDay = $derived(isIsoDate(date) ? Number(date.slice(8, 10)) : 1);
+  const interval = $derived(Number(intervalText));
+  const intervalValid = $derived(
+    Number.isInteger(interval) && interval >= MIN_INTERVAL_DAYS && interval <= MAX_INTERVAL_DAYS,
+  );
+  /** "Noted again on day 12 of each month…", following the chosen frequency and date. */
+  const repeatHint = $derived.by(() => {
+    const anchor = isIsoDate(date) ? date : today;
+    switch (frequency) {
+      case 'monthly':
+        return t('editor.repeatHint', { day: Number(anchor.slice(8, 10)) });
+      case 'weekly':
+        return t('editor.repeatHintWeekly', { weekday: format(anchor, locale, { weekday: 'long' }) });
+      case 'yearly':
+        return t('editor.repeatHintYearly', {
+          date: format(anchor, locale, { day: 'numeric', month: 'long' }),
+        });
+      case 'every_n_days':
+        return t('editor.repeatHintDays', { n: intervalValid ? interval : MIN_INTERVAL_DAYS });
+    }
+  });
 
   /** "Leisure would reach 115 % of its budget": shown before saving an expense that takes it ≥ 80 %. */
   const budgetNotice = $derived.by(() => {
@@ -122,6 +147,8 @@
     errors = {};
     showAll = false;
     repeat = false;
+    frequency = 'monthly';
+    intervalText = '';
     if (movement) {
       type = movement.type;
       amountText = centsToInput(movement.amountCents, locale);
@@ -173,6 +200,8 @@
     if (cents === null || cents <= 0) next.amount = t('editor.errorAmount', { example });
     if (type === 'expense' && !categoryOf(categoryId)) next.category = t('editor.errorCategory');
     if (!isIsoDate(date)) next.date = t('editor.errorDate');
+    if (!editing && repeat && frequency === 'every_n_days' && !intervalValid)
+      next.interval = t('recurring.errorInterval');
     errors = next;
     if (cents === null || Object.keys(next).length > 0) {
       await tick();
@@ -193,7 +222,12 @@
     const before = editing;
     close();
     if (before) void updateMovement(before, movement, messagesFor);
-    else void createMovement(movement, repeat, messagesFor);
+    else
+      void createMovement(
+        movement,
+        repeat ? { frequency, intervalDays: frequency === 'every_n_days' ? interval : null } : null,
+        messagesFor,
+      );
   }
 
   function remove() {
@@ -368,9 +402,41 @@
               bind:checked={repeat}
               aria-describedby="editor-repeat-hint"
             />
-            <div>
+            <div class="editor__repeat-body">
               <label for="editor-repeat">{t('editor.repeat')}</label>
-              <p class="field__hint" id="editor-repeat-hint">{t('editor.repeatHint', { day: repeatDay })}</p>
+              {#if repeat}
+                <div class="editor__repeat-row">
+                  <select
+                    id="editor-frequency"
+                    class="field__input"
+                    aria-label={t('editor.repeatFrequency')}
+                    bind:value={frequency}
+                  >
+                    {#each frequencies as option (option)}
+                      <option value={option}>{t(`recurring.freq.${option}` as UiKey)}</option>
+                    {/each}
+                  </select>
+                  {#if frequency === 'every_n_days'}
+                    <input
+                      id="editor-interval"
+                      class="field__input num"
+                      bind:value={intervalText}
+                      inputmode="numeric"
+                      autocomplete="off"
+                      placeholder="10"
+                      aria-label={t('recurring.interval')}
+                      aria-invalid={errors.interval ? 'true' : undefined}
+                      aria-describedby={errors.interval ? 'editor-interval-error' : undefined}
+                    />
+                  {/if}
+                </div>
+                {#if errors.interval && frequency === 'every_n_days'}
+                  <p class="field__error" id="editor-interval-error">
+                    <Icon name="alert" />{errors.interval}
+                  </p>
+                {/if}
+              {/if}
+              <p class="field__hint" id="editor-repeat-hint">{repeatHint}</p>
             </div>
           </div>
         {:else if editing.recurring}
@@ -558,6 +624,29 @@
   .editor__repeat label {
     font-weight: 600;
     cursor: pointer;
+  }
+
+  .editor__repeat-body {
+    display: grid;
+    flex: 1;
+    gap: var(--space-2);
+    min-inline-size: 0;
+  }
+
+  /* Frequency + "every how many days" share one line; the number field stays short. */
+  .editor__repeat-row {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .editor__repeat-row select {
+    flex: 1;
+    min-inline-size: 0;
+  }
+
+  .editor__repeat-row input {
+    flex: none;
+    inline-size: 6rem;
   }
 
   .editor__notice {
