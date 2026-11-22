@@ -153,6 +153,50 @@ test.describe('movements', () => {
     await expect(toast(page)).toContainText('We couldn’t save it');
   });
 
+  test('Repeat notes a template with the chosen frequency', async ({ page }, info) => {
+    await newUser(page, 'repeat');
+    await page.goto('/app/movements');
+    const saved = () =>
+      page.waitForResponse((r) => r.url().endsWith('/api/movements') && r.request().method() === 'POST');
+
+    // Yearly: the hint names the day and month; the template shows in Recurring.
+    let dialog = await openNew(page, info);
+    await expect(dialog.getByRole('combobox', { name: 'How often' })).toHaveCount(0);
+    await dialog.getByLabel('Amount').fill('99');
+    await dialog.getByRole('radio', { name: 'Food' }).check();
+    await dialog.getByLabel('Note (optional)').fill('Insurance');
+    await dialog.getByRole('switch', { name: 'Repeat' }).check();
+    await expect(dialog.getByText(/^Noted again on day \d+ of each month/)).toBeVisible();
+    await dialog.getByRole('combobox', { name: 'How often' }).selectOption('yearly');
+    await expect(dialog.getByText(/^Noted again every year on \d+ \w+\.$/)).toBeVisible();
+    await expectNoAxeViolations(page);
+    let response = saved();
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    expect((await response).status()).toBe(201);
+
+    // Every N days: the number of days is checked before saving.
+    dialog = await openNew(page, info);
+    await dialog.getByLabel('Amount').fill('5');
+    await dialog.getByRole('radio', { name: 'Food' }).check();
+    await dialog.getByLabel('Note (optional)').fill('Bread');
+    await dialog.getByRole('switch', { name: 'Repeat' }).check();
+    await dialog.getByRole('combobox', { name: 'How often' }).selectOption('every_n_days');
+    const days = dialog.getByLabel('Every how many days');
+    await days.fill('1');
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    await expect(dialog.getByText('Use a whole number from 2 to 365.')).toBeVisible();
+    await expect(days).toBeFocused();
+    await days.fill('10');
+    await expect(dialog.getByText('Noted again every 10 days.')).toBeVisible();
+    response = saved();
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    expect((await response).status()).toBe(201);
+
+    await page.goto('/app/movements/recurring');
+    await expect(page.getByRole('row', { name: /Insurance/ })).toContainText('Yearly ·');
+    await expect(page.getByRole('row', { name: /Bread/ })).toContainText('Every 10 days');
+  });
+
   test('the editor checks the amount and the category', async ({ page }, info) => {
     await newUser(page, 'validate');
     await page.goto('/app/movements');

@@ -349,7 +349,7 @@ export function handleDemoRequest(state: DemoState, url: URL, method: string, bo
       const movementId = String(body['id']);
       const existing = state.movements.find((m) => m.id === movementId);
       if (existing) return json(201, { movement: existing, alert: null });
-      const created = movementFrom(movementId, body, body['repeat'] === true);
+      const created = movementFrom(movementId, body, Boolean(body['repeat']));
       state.movements.push(created);
       return json(201, { movement: created, alert: null });
     }

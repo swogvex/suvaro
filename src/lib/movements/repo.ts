@@ -3,7 +3,7 @@
  * user can never read or change another user's rows: a foreign id behaves exactly like a missing one.
  */
 import { and, count, desc, eq, gte, inArray, lt, lte, or, sql, type SQL } from 'drizzle-orm';
-import { addDays, addMonths, monthEnd, monthOf, monthStart } from '../dates';
+import { addDays, monthEnd, monthOf, monthStart } from '../dates';
 import type { Database } from '../db/client';
 import { category, movement, recurring } from '../db/schema';
 import { colorIndex } from '../default-categories';
@@ -11,6 +11,7 @@ import { parseAmount } from '../money';
 import type { Locale } from '../../i18n';
 import { dateRange, type Filters } from './filters';
 import { MAX_MOVEMENTS, type CategoryOption, type Movement } from './model';
+import { occurrence } from '../recurring/schedule';
 import type { CreateInput, UpdateInput } from './schema';
 
 type Row = typeof movement.$inferSelect;
@@ -162,8 +163,9 @@ export async function ownsCategory(
 }
 
 /**
- * Creates a movement with the client's ULID. With `repeat`, it also creates a monthly recurring template
- * (same day each month, clamped to the month's end) that the daily cron materialises from next month.
+ * Creates a movement with the client's ULID. With `repeat`, it also creates a recurring template anchored on
+ * the movement's date (monthly and yearly clamp to the month's end) that the daily cron materialises from
+ * its next occurrence on.
  * Sending the same create twice (a lost response) returns the existing row.
  */
 export async function createMovement(db: Database, userId: string, input: CreateInput): Promise<WriteResult> {
@@ -196,10 +198,10 @@ export async function createMovement(db: Database, userId: string, input: Create
             amountCents: values.amountCents,
             categoryId: values.categoryId,
             note: values.note,
-            frequency: 'monthly',
+            ...repeat,
             anchorDate: values.date,
             mode: 'auto',
-            nextDate: addMonths(values.date, 1),
+            nextDate: occurrence({ ...repeat, anchorDate: values.date, endDate: null }, 1),
           }),
           insertMovement,
         ])

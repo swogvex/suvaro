@@ -95,7 +95,11 @@ describe('movement repository', () => {
     const result = await createMovement(
       db,
       ana.id,
-      input({ categoryId: ana.food, date: '2026-01-31', repeat: true }),
+      input({
+        categoryId: ana.food,
+        date: '2026-01-31',
+        repeat: { frequency: 'monthly', intervalDays: null },
+      }),
     );
     expect(result.ok && result.movement.recurring).toBe(true);
     const [template] = await db.select().from(recurring).where(eq(recurring.userId, ana.id));
@@ -106,6 +110,24 @@ describe('movement repository', () => {
       nextDate: '2026-02-28',
     });
   });
+
+  it.each([
+    ['yearly', null, '2028-02-29', '2029-02-28'],
+    ['weekly', null, '2026-11-20', '2026-11-27'],
+    ['every_n_days', 10, '2026-11-20', '2026-11-30'],
+  ] as const)(
+    'Repeat %s starts its template on the next occurrence',
+    async (frequency, intervalDays, date, nextDate) => {
+      const ana = await addUser('ana');
+      await createMovement(
+        db,
+        ana.id,
+        input({ categoryId: ana.food, date, repeat: { frequency, intervalDays } as CreateInput['repeat'] }),
+      );
+      const [template] = await db.select().from(recurring).where(eq(recurring.userId, ana.id));
+      expect(template).toMatchObject({ frequency, intervalDays, anchorDate: date, nextDate });
+    },
+  );
 
   it('lists by month, newest first, skipping empty months, with filters', async () => {
     const ana = await addUser('ana');

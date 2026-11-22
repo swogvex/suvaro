@@ -6,7 +6,7 @@ import type { Recurring } from './model';
 
 const intlLocale: Record<Locale, string> = { en: 'en-GB', es: 'es-ES' };
 
-function format(date: string, locale: Locale, options: Intl.DateTimeFormatOptions): string {
+export function format(date: string, locale: Locale, options: Intl.DateTimeFormatOptions): string {
   return new Intl.DateTimeFormat(intlLocale[locale], { ...options, timeZone: 'UTC' }).format(
     new Date(`${date}T00:00:00Z`),
   );

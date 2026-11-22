@@ -50,7 +50,13 @@ const {
   searchable,
 } = Astro.props;
 const t = useTranslations(locale);
-const editorMessages = pickMessages(locale, ['editor.', 'movements.']);
+const editorMessages = pickMessages(locale, [
+  'editor.',
+  'movements.',
+  'recurring.freq.',
+  'recurring.interval',
+  'recurring.errorInterval',
+]);
 const searchMessages = pickMessages(locale, ['search.', 'movements.']);
 ---
 
